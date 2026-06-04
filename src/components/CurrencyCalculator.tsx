@@ -28,7 +28,27 @@ export default function CurrencyCalculator() {
         useState("10000");
 
     useEffect(() => {
-        getRates().then(setRates);
+        const loadRates = async () => {
+            try {
+                const data =
+                    await getRates();
+
+                setRates(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        loadRates();
+
+        const interval =
+            setInterval(
+                loadRates,
+                60000
+            );
+
+        return () =>
+            clearInterval(interval);
     }, []);
 
     const numericAmount =
