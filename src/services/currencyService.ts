@@ -1,8 +1,14 @@
+export interface CurrencyRate {
+    rate: number;
+    vip: number;
+    minVip: number;
+}
+
 export interface Rates {
-    RUB: number;
-    USD: number;
-    EUR: number;
-    USDT: number;
+    RUB: CurrencyRate;
+    USD: CurrencyRate;
+    EUR: CurrencyRate;
+    USDT: CurrencyRate;
 }
 
 export async function getRates(): Promise<Rates> {

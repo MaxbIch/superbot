@@ -25,7 +25,11 @@ export default async function handler(
 
         const rates: Record<
             string,
-            number
+            {
+                rate: number;
+                vip: number;
+                minVip: number;
+            }
         > = {};
 
         rows.forEach((row: any) => {
@@ -35,12 +39,18 @@ export default async function handler(
             const rate =
                 row.c?.[1]?.v;
 
-            if (
-                currency &&
-                rate
-            ) {
-                rates[currency] =
-                    Number(rate);
+            const vip =
+                row.c?.[2]?.v;
+
+            const minVip =
+                row.c?.[3]?.v;
+
+            if (currency) {
+                rates[currency] = {
+                    rate: Number(rate),
+                    vip: Number(vip),
+                    minVip: Number(minVip),
+                };
             }
         });
 

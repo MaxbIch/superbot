@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-
 import { getRates } from "../services/currencyService";
 
 type Currency =
@@ -18,8 +17,7 @@ const currencies: Currency[] = [
 ];
 
 export default function CurrencyCalculator() {
-    const [rates, setRates] =
-        useState<any>(null);
+    const [rates, setRates] = useState<any>(null);
 
     const [currency, setCurrency] =
         useState<Currency>("RUB");
@@ -52,39 +50,65 @@ export default function CurrencyCalculator() {
     }, []);
 
     const numericAmount =
-        Number(amount.replace(/\s/g, "")) || 0;
+        Number(
+            amount.replace(/\s/g, "")
+        ) || 0;
 
-    const results = useMemo(() => {
+    const calculation = useMemo(() => {
         if (!rates) return null;
 
         if (currency === "VND") {
             return {
-                RUB:
-                    numericAmount /
-                    rates.RUB,
+                results: {
+                    RUB:
+                        numericAmount /
+                        rates.RUB.rate,
 
-                USD:
-                    numericAmount /
-                    rates.USD,
+                    USD:
+                        numericAmount /
+                        rates.USD.rate,
 
-                EUR:
-                    numericAmount /
-                    rates.EUR,
+                    EUR:
+                        numericAmount /
+                        rates.EUR.rate,
 
-                USDT:
-                    numericAmount /
-                    rates.USDT,
+                    USDT:
+                        numericAmount /
+                        rates.USDT.rate,
+                },
             };
         }
 
+        const currencyRate =
+            rates[currency];
+
+        const activeRate =
+            numericAmount >=
+            currencyRate.minVip
+                ? currencyRate.vip
+                : currencyRate.rate;
+
+        const isVip =
+            numericAmount >=
+            currencyRate.minVip;
+
         return {
-            VND:
-                numericAmount *
-                rates[currency],
+            results: {
+                VND:
+                    numericAmount *
+                    activeRate,
+            },
+
+            activeRate,
+
+            isVip,
+
+            minVip:
+            currencyRate.minVip,
         };
     }, [
-        currency,
         numericAmount,
+        currency,
         rates,
     ]);
 
@@ -111,19 +135,14 @@ export default function CurrencyCalculator() {
 
     return (
         <div className="space-y-6">
+
             <div className="bg-white rounded-3xl p-5 shadow">
                 <h3 className="font-semibold mb-4">
                     Валюта
                 </h3>
 
-                <div
-                    className="
-            grid
-            grid-cols-1
-            md:grid-cols-2
-            gap-4
-          "
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                     <select
                         value={currency}
                         onChange={(e) =>
@@ -170,80 +189,144 @@ export default function CurrencyCalculator() {
               py-3
             "
                     />
+
                 </div>
             </div>
 
+            {currency !== "VND" &&
+                calculation && (
+                    <div className="bg-white rounded-3xl p-5 shadow">
+
+                        <div className="font-semibold">
+                            Курс:{" "}
+                            {
+                                calculation.activeRate
+                            }
+                        </div>
+
+                        {calculation.isVip ? (
+                            <div className="text-green-600 mt-2">
+                                ⭐ Используется VIP
+                                курс
+                            </div>
+                        ) : (
+                            <div className="text-gray-500 mt-2">
+                                От{" "}
+                                {calculation.minVip.toLocaleString(
+                                    "ru-RU"
+                                )}{" "}
+                                {currency}
+                                {" "}
+                                действует VIP
+                                курс
+                            </div>
+                        )}
+
+                    </div>
+                )}
+
             <div className="bg-white rounded-3xl p-5 shadow">
+
                 <h3 className="font-semibold mb-4">
                     Результат
                 </h3>
 
                 {currency === "VND" ? (
                     <div className="space-y-4">
+
                         <ResultRow
                             label="🇷🇺 RUB"
-                            value={results?.RUB}
+                            value={
+                                calculation
+                                    ?.results?.RUB
+                            }
                         />
 
                         <ResultRow
                             label="🇺🇸 USD"
-                            value={results?.USD}
+                            value={
+                                calculation
+                                    ?.results?.USD
+                            }
                         />
 
                         <ResultRow
                             label="🇪🇺 EUR"
-                            value={results?.EUR}
+                            value={
+                                calculation
+                                    ?.results?.EUR
+                            }
                         />
 
                         <ResultRow
                             label="🪙 USDT"
-                            value={results?.USDT}
+                            value={
+                                calculation
+                                    ?.results?.USDT
+                            }
                         />
+
                     </div>
                 ) : (
                     <div className="text-center py-4">
+
                         <div className="text-6xl mb-4">
                             🇻🇳
                         </div>
 
                         <div className="text-3xl font-bold">
                             {Number(
-                                results?.VND || 0
+                                calculation
+                                    ?.results
+                                    ?.VND || 0
                             ).toLocaleString(
                                 "ru-RU"
                             )}{" "}
                             ₫
                         </div>
+
                     </div>
                 )}
             </div>
 
             <div className="bg-white rounded-3xl p-5 shadow">
+
                 <h3 className="font-semibold mb-4">
                     Актуальные курсы
                 </h3>
 
                 <div className="space-y-3">
+
                     <RateRow
                         label="🇷🇺 RUB"
-                        value={rates.RUB}
+                        value={
+                            rates.RUB.rate
+                        }
                     />
 
                     <RateRow
                         label="🇺🇸 USD"
-                        value={rates.USD}
+                        value={
+                            rates.USD.rate
+                        }
                     />
 
                     <RateRow
                         label="🇪🇺 EUR"
-                        value={rates.EUR}
+                        value={
+                            rates.EUR.rate
+                        }
                     />
 
                     <RateRow
                         label="🪙 USDT"
-                        value={rates.USDT}
+                        value={
+                            rates.USDT.rate
+                        }
                     />
+
                 </div>
+
             </div>
 
             <button
@@ -266,6 +349,7 @@ export default function CurrencyCalculator() {
             >
                 Связаться для обмена
             </button>
+
         </div>
     );
 }
@@ -282,7 +366,9 @@ function ResultRow({
             <span>{label}</span>
 
             <strong>
-                {(value ?? 0).toFixed(2)}
+                {(value ?? 0).toFixed(
+                    2
+                )}
             </strong>
         </div>
     );
@@ -300,9 +386,12 @@ function RateRow({
             <span>{label}</span>
 
             <strong>
-                {Number(value ?? 0).toLocaleString(
+                {Number(
+                    value ?? 0
+                ).toLocaleString(
                     "ru-RU"
-                )} ₫
+                )}{" "}
+                ₫
             </strong>
         </div>
     );
