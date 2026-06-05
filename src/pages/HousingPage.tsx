@@ -1,3 +1,11 @@
+import LeadFormPage from "../components/LeadFormPage";
+
+import { housingLead } from "../data/housingLead";
+
 export default function HousingPage() {
-    return <h1>Housing Page</h1>;
+    return (
+        <LeadFormPage
+            config={housingLead}
+        />
+    );
 }
