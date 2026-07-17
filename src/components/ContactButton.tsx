@@ -1,17 +1,23 @@
-export default function ContactButton() {
-    const handleClick = () => {
-        window.open(
-            "https://t.me/YOUR_USERNAME",
-            "_blank"
-        );
-    };
+import Button from "./Button";
+import { openTelegramChat } from "../lib/telegram";
 
+interface Props {
+    message?: string;
+    label?: string;
+}
+
+export default function ContactButton({
+    message,
+    label = "Связаться с нами",
+}: Props) {
     return (
-        <button
-            onClick={handleClick}
-            className="w-full bg-green-600 text-white rounded-2xl py-4 font-semibold"
+        <Button
+            fullWidth
+            size="lg"
+            icon="💬"
+            onClick={() => openTelegramChat(message)}
         >
-            Связаться с нами
-        </button>
+            {label}
+        </Button>
     );
 }

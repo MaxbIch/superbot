@@ -8,6 +8,7 @@ export const carLead: LeadConfig =
             "Аренда автомобиля",
 
         emoji: "🚗",
+        category: "transport/car",
 
         questions: [
             {

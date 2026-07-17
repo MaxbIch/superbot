@@ -4,6 +4,7 @@ export const visaLead: LeadConfig = {
     title: "Визаран",
 
     emoji: "🛂",
+    category: "visarun",
 
     questions: [
         {

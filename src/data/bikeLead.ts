@@ -8,6 +8,7 @@ export const bikeLead: LeadConfig =
             "Аренда байка",
 
         emoji: "🏍️",
+        category: "transport/bike",
 
         questions: [
             {

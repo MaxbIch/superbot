@@ -1,95 +1,85 @@
 import { useState } from "react";
 
+import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 import LeadFormPage from "../components/LeadFormPage";
+import Card from "../components/Card";
 
 import { bikeLead } from "../data/bikeLead";
 import { carLead } from "../data/carLead";
 
+const options = [
+    {
+        type: "bike" as const,
+        emoji: "🏍️",
+        title: "Аренда байка",
+        description: "Vision, Airblade, NVX, PCX и другие",
+    },
+    {
+        type: "car" as const,
+        emoji: "🚗",
+        title: "Аренда автомобиля",
+        description: "Седан, кроссовер или минивэн",
+    },
+];
+
 export default function TransportPage() {
-    const [type, setType] =
-        useState<
-            "bike" | "car" | null
-        >(null);
+    const [type, setType] = useState<"bike" | "car" | null>(null);
 
     if (type === "bike") {
-        return (
-            <LeadFormPage
-                config={bikeLead}
-            />
-        );
+        return <LeadFormPage config={bikeLead} />;
     }
 
     if (type === "car") {
-        return (
-            <LeadFormPage
-                config={carLead}
-            />
-        );
+        return <LeadFormPage config={carLead} />;
     }
 
     return (
-        <div className="max-w-xl mx-auto p-4">
-            <div className="bg-white rounded-3xl p-6 shadow">
+        <Layout>
+            <BackButton />
 
-                <h1 className="text-2xl font-bold mb-6">
-                    🚘 Транспорт
-                </h1>
-
-                <p className="text-gray-500 mb-6">
-                    Что вас интересует?
-                </p>
-
-                <div className="space-y-4">
-
-                    <button
-                        onClick={() =>
-                            setType("bike")
-                        }
-                        className="
-              w-full
-              bg-white
-              border
-              rounded-2xl
-              p-5
-              text-left
-              hover:border-green-500
-            "
-                    >
-                        <div className="text-3xl mb-2">
-                            🏍️
-                        </div>
-
-                        <div className="font-semibold">
-                            Аренда байка
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={() =>
-                            setType("car")
-                        }
-                        className="
-              w-full
-              bg-white
-              border
-              rounded-2xl
-              p-5
-              text-left
-              hover:border-green-500
-            "
-                    >
-                        <div className="text-3xl mb-2">
-                            🚗
-                        </div>
-
-                        <div className="font-semibold">
-                            Аренда автомобиля
-                        </div>
-                    </button>
-
+            <div className="animate-fade-in-up">
+                <div className="mb-5">
+                    <span className="text-4xl">🚘</span>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-2">
+                        Транспорт
+                    </h1>
+                    <p className="text-ink-muted mt-1 text-sm">
+                        Что вас интересует?
+                    </p>
                 </div>
 
+                <div className="space-y-3">
+                    {options.map((option) => (
+                        <Card
+                            key={option.type}
+                            hover
+                            padding="md"
+                            onClick={() => setType(option.type)}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className="
+                                        w-14 h-14 rounded-2xl
+                                        bg-gradient-to-br from-brand-100 to-brand-200
+                                        flex items-center justify-center text-3xl
+                                    "
+                                >
+                                    {option.emoji}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-ink">
+                                        {option.title}
+                                    </div>
+                                    <p className="text-sm text-ink-muted mt-0.5">
+                                        {option.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
-        </div>
+        </Layout>
     );
 }

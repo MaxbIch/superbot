@@ -7,6 +7,7 @@ export const housingLead: LeadConfig =
         title: "Подбор жилья",
 
         emoji: "🏠",
+        category: "housing",
 
         questions: [
             {

@@ -7,5 +7,6 @@ export interface LeadQuestion {
 export interface LeadConfig {
     title: string;
     emoji: string;
+    category: string;
     questions: LeadQuestion[];
 }

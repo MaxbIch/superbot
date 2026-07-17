@@ -6,27 +6,22 @@ import { tours } from "../data/tours";
 export default function ToursPage() {
     return (
         <Layout>
-            <div className="max-w-5xl mx-auto">
-                <BackButton />
+            <BackButton />
 
-                <h1 className="text-3xl font-bold mb-6">
+            <div className="mb-5 animate-fade-in-up">
+                <span className="text-4xl">🌴</span>
+                <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-2">
                     Туры по Вьетнаму
                 </h1>
+                <p className="text-ink-muted mt-1 text-sm">
+                    Экскурсии, острова и развлечения
+                </p>
+            </div>
 
-                <div
-                    className="
-            grid
-            gap-6
-            md:grid-cols-2
-          "
-                >
-                    {tours.map((tour) => (
-                        <TourCard
-                            key={tour.id}
-                            {...tour}
-                        />
-                    ))}
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+                {tours.map((tour) => (
+                    <TourCard key={tour.id} {...tour} />
+                ))}
             </div>
         </Layout>
     );

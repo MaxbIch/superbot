@@ -1,114 +1,157 @@
 import { useMemo, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 
 import Layout from "./Layout";
 import BackButton from "./BackButton";
 import OptionGroup from "./OptionGroup";
+import Card from "./Card";
+import Button from "./Button";
 
-import type {
-    LeadConfig,
-} from "../types/lead";
+import { submitLead } from "../services/leadService";
+import { hapticFeedback } from "../lib/telegram";
+import type { LeadConfig } from "../types/lead";
 
 interface Props {
     config: LeadConfig;
 }
 
-export default function LeadFormPage({
-                                         config,
-                                     }: Props) {
-    const [answers, setAnswers] =
-        useState<
-            Record<string, string>
-        >({});
+export default function LeadFormPage({ config }: Props) {
+    const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(false);
+    const [sent, setSent] = useState(false);
+    const [error, setError] = useState("");
 
-    const completed =
-        config.questions.every(
-            (question) =>
-                answers[question.id]
+    const completed = config.questions.every(
+        (question) => answers[question.id],
+    );
+
+    const fields = useMemo(() => {
+        const result: Record<string, string> = {};
+
+        config.questions.forEach((question) => {
+            result[question.title] = answers[question.id] || "-";
+        });
+
+        return result;
+    }, [answers, config.questions]);
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            await submitLead({
+                category: config.category,
+                title: config.title,
+                emoji: config.emoji,
+                fields,
+            });
+
+            hapticFeedback("success");
+            setSent(true);
+        } catch (err) {
+            hapticFeedback("error");
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Не удалось отправить заявку",
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (sent) {
+        return (
+            <Layout>
+                <Card padding="lg" className="text-center animate-fade-in-up">
+                    <div className="text-6xl mb-4">✅</div>
+                    <h1 className="text-2xl font-bold text-ink mb-2">
+                        Заявка отправлена!
+                    </h1>
+                    <p className="text-ink-muted mb-6">
+                        Мы получили вашу заявку и скоро свяжемся с вами в Telegram.
+                    </p>
+                    <Button onClick={() => window.history.back()}>
+                        Вернуться назад
+                    </Button>
+                </Card>
+            </Layout>
         );
-
-    const message = useMemo(() => {
-        let text = `${config.emoji} ${config.title}\n\n`;
-
-        config.questions.forEach(
-            (question) => {
-                text += `${question.title}: ${
-                    answers[
-                        question.id
-                        ] || "-"
-                }\n`;
-            }
-        );
-
-        return text;
-    }, [
-        answers,
-        config,
-    ]);
+    }
 
     return (
         <Layout>
-            <div className="max-w-3xl mx-auto">
-                <BackButton />
+            <BackButton />
 
-                <div className="bg-white rounded-3xl p-6 shadow">
-                    <h1 className="text-2xl font-bold mb-8">
-                        {config.emoji}{" "}
+            <div className="animate-fade-in-up">
+                <div className="mb-5">
+                    <span className="text-4xl">{config.emoji}</span>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-2">
                         {config.title}
                     </h1>
-
-                    {config.questions.map(
-                        (question) => (
-                            <OptionGroup
-                                key={question.id}
-                                title={
-                                    question.title
-                                }
-                                options={
-                                    question.options
-                                }
-                                value={
-                                    answers[
-                                        question.id
-                                        ]
-                                }
-                                onChange={(
-                                    value
-                                ) =>
-                                    setAnswers({
-                                        ...answers,
-                                        [question.id]:
-                                        value,
-                                    })
-                                }
-                            />
-                        )
-                    )}
+                    <p className="text-ink-muted mt-1 text-sm">
+                        Ответьте на несколько вопросов — мы подберём лучший вариант
+                    </p>
                 </div>
 
+                <Card className="mb-4">
+                    {config.questions.map((question) => (
+                        <OptionGroup
+                            key={question.id}
+                            title={question.title}
+                            options={question.options}
+                            value={answers[question.id]}
+                            onChange={(value) =>
+                                setAnswers({
+                                    ...answers,
+                                    [question.id]: value,
+                                })
+                            }
+                        />
+                    ))}
+                </Card>
+
                 {completed && (
-                    <div className="mt-6 bg-white rounded-3xl p-6 shadow">
-                        <h2 className="font-semibold mb-3">
-                            Ваша заявка
-                        </h2>
+                    <Card className="animate-fade-in-up">
+                        <div className="flex items-center gap-2 mb-4">
+                            <CheckCircle2 className="w-5 h-5 text-brand-600" />
+                            <h2 className="font-semibold text-ink">
+                                Проверьте заявку
+                            </h2>
+                        </div>
 
-                        <pre className="whitespace-pre-wrap text-sm">
-              {message}
-            </pre>
+                        <div className="space-y-2 mb-4">
+                            {config.questions.map((question) => (
+                                <div
+                                    key={question.id}
+                                    className="flex justify-between gap-4 text-sm py-2 border-b border-border last:border-0"
+                                >
+                                    <span className="text-ink-muted">
+                                        {question.title}
+                                    </span>
+                                    <span className="font-medium text-ink text-right">
+                                        {answers[question.id]}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
 
-                        <button
-                            className="
-                w-full
-                mt-4
-                bg-green-600
-                text-white
-                py-4
-                rounded-2xl
-                font-semibold
-              "
+                        {error && (
+                            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        <Button
+                            fullWidth
+                            size="lg"
+                            loading={loading}
+                            onClick={handleSubmit}
                         >
                             Отправить заявку
-                        </button>
-                    </div>
+                        </Button>
+                    </Card>
                 )}
             </div>
         </Layout>

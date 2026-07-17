@@ -6,8 +6,8 @@ interface Props {
 
 export default function Layout({ children }: Props) {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#eef8f3] to-[#6dc89a]">
-            <div className="container mx-auto px-4 py-6">
+        <div className="min-h-dvh safe-bottom">
+            <div className="mx-auto w-full max-w-lg px-4 py-5 sm:max-w-2xl sm:px-6 sm:py-8">
                 {children}
             </div>
         </div>
