@@ -8,8 +8,9 @@ import { submitLead } from "../services/leadService";
 import { hapticFeedback } from "../lib/telegram";
 
 type Currency = "RUB" | "USD" | "EUR" | "USDT" | "VND";
+type ExchangeCurrency = Exclude<Currency, "VND">;
 
-const currencies: { value: Currency; label: string; flag: string }[] = [
+const currencies: { value: ExchangeCurrency; label: string; flag: string }[] = [
     { value: "RUB", label: "RUB", flag: "🇷🇺" },
     { value: "USD", label: "USD", flag: "🇺🇸" },
     { value: "EUR", label: "EUR", flag: "🇪🇺" },
@@ -19,7 +20,7 @@ const currencies: { value: Currency; label: string; flag: string }[] = [
 export default function CurrencyCalculator() {
     const [rates, setRates] = useState<Rates | null>(null);
     const [fromCurrency, setFromCurrency] = useState<Currency>("RUB");
-    const [toCurrency, setToCurrency] = useState<Currency>("USD");
+    const [toCurrency, setToCurrency] = useState<ExchangeCurrency>("USD");
     const [amount, setAmount] = useState("10000");
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
@@ -119,7 +120,6 @@ export default function CurrencyCalculator() {
         ...currencies,
         { value: "VND", label: "VND", flag: "🇻🇳" },
     ];
-    const targetCurrencies = currencies.filter((item) => item.value !== fromCurrency);
 
     return (
         <div className="space-y-4 animate-fade-in-up">
@@ -149,7 +149,7 @@ export default function CurrencyCalculator() {
                     <>
                         <p className="text-sm text-ink-muted mb-3">Получаю</p>
                         <div className="grid grid-cols-4 gap-2 mb-4">
-                            {targetCurrencies.map((item) => (
+                            {currencies.map((item) => (
                                 <button
                                     key={item.value}
                                     onClick={() => { setToCurrency(item.value); setSent(false); }}
