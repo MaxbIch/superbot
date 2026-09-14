@@ -12,13 +12,13 @@ import { carLead } from "../data/carLead";
 const options = [
     {
         type: "bike" as const,
-        image: "/category-icon/transport.png",
+        image: "/category-icon/bike.png",
         title: "Аренда байка",
         description: "Vision, Airblade, NVX, PCX и другие",
     },
     {
         type: "car" as const,
-        image: "/category-icon/transport.png",
+        image: "/category-icon/car.png",
         title: "Аренда автомобиля",
         description: "Седан, кроссовер или минивэн",
     },
