@@ -2,94 +2,78 @@ const GOOGLE_FINANCE_PAIRS = ["USD-VND", "EUR-VND", "RUB-VND", "USDT-VND"] as co
 
 type GooglePair = (typeof GOOGLE_FINANCE_PAIRS)[number];
 
-const RPC_URL = "https://www.google.com/finance/_/GoogleFinanceUi/data/batchexecute";
+function parseGoogleNumber(value: string): number {
+    const normalized = value.replace(/,/g, "").trim();
+    const number = Number(normalized);
 
-function buildRequest(pair: GooglePair, index: number) {
-    const [base, quote] = pair.split("-");
-    const tickerTuple = [null, null, [base, quote]];
+    if (!Number.isFinite(number) || number <= 0) {
+        throw new Error(`Invalid Google Finance price: ${value}`);
+    }
 
-    return [
-        "xh8wxf",
-        JSON.stringify([[tickerTuple], 1]),
-        null,
-        String(index),
-    ];
+    return number;
 }
 
-function parseRpcResponse(raw: string): number[] {
-    const stripped = raw.replace(/^\)\]\}'\n\n?/, "");
-    const prices: number[] = [];
-    const lines = stripped.split("\n");
+function extractPrice(html: string, pair: GooglePair): number {
+    // Google Finance currently renders the main quote with the
+    // YMlKec / fxKbKc classes. Keep a few fallbacks because Google
+    // can change the markup without notice.
+    const patterns = [
+        /class="YMlKec fxKbKc"[^>]*>([^<]+)</,
+        /class="[^"]*YMlKec[^"]*fxKbKc[^"]*"[^>]*>([^<]+)</,
+        /data-last-price="([0-9.,]+)"/,
+    ];
 
-    for (let i = 0; i < lines.length - 1; i += 1) {
-        const sizeLine = lines[i]?.trim();
-        const payloadLine = lines[i + 1];
-
-        if (!sizeLine || !/^[0-9a-f ]+$/i.test(sizeLine)) continue;
-
-        try {
-            const entries = JSON.parse(payloadLine);
-
-            for (const entry of entries) {
-                if (entry?.[0] !== "wrb.fr" || entry?.[1] !== "xh8wxf" || !entry?.[2]) {
-                    continue;
-                }
-
-                const data = JSON.parse(entry[2]);
-                const quote = data?.[0]?.[0]?.[0];
-                const price = quote?.[5]?.[0];
-
-                if (typeof price === "number" && Number.isFinite(price) && price > 0) {
-                    prices.push(price);
-                }
-            }
-        } catch {
-            // Ignore non-JSON chunks and continue parsing the response.
+    for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match?.[1]) {
+            return parseGoogleNumber(match[1]);
         }
     }
 
-    return prices;
+    throw new Error(`Google Finance rate not found for ${pair}`);
 }
 
-export default async function handler(req: any, res: any) {
-    try {
-        const rpcids = "xh8wxf";
-        const body = `f.req=${encodeURIComponent(JSON.stringify([[GOOGLE_FINANCE_PAIRS.map((pair, index) => buildRequest(pair, index + 1))]]))}`;
-        const sourcePath = `/finance/quote/${GOOGLE_FINANCE_PAIRS[0]}`;
+async function fetchGoogleRate(pair: GooglePair): Promise<number> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
+    try {
         const response = await fetch(
-            `${RPC_URL}?rpcids=${rpcids}&source-path=${encodeURIComponent(sourcePath)}&hl=en&gl=us&rt=c`,
+            `https://www.google.com/finance/beta/quote/${pair}?hl=en&gl=us`,
             {
-                method: "POST",
                 headers: {
                     "User-Agent":
                         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
                         "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
                     Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                     "Accept-Language": "en-US,en;q=0.9",
-                    "Accept-Encoding": "identity",
-                    Cookie: "CONSENT=YES+",
-                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
                 },
-                body,
+                signal: controller.signal,
             },
         );
 
         if (!response.ok) {
-            throw new Error(`Google Finance request failed: ${response.status}`);
+            throw new Error(`Google Finance request failed for ${pair}: ${response.status}`);
         }
 
-        const prices = parseRpcResponse(await response.text());
+        return extractPrice(await response.text(), pair);
+    } finally {
+        clearTimeout(timeout);
+    }
+}
 
-        if (prices.length !== GOOGLE_FINANCE_PAIRS.length) {
-            throw new Error(`Google Finance returned ${prices.length}/${GOOGLE_FINANCE_PAIRS.length} rates`);
-        }
+export default async function handler(req: any, res: any) {
+    try {
+        const values = await Promise.all(
+            GOOGLE_FINANCE_PAIRS.map(async (pair) => [pair, await fetchGoogleRate(pair)] as const),
+        );
 
         const rates: Record<string, number> = {};
-        GOOGLE_FINANCE_PAIRS.forEach((pair, index) => {
+
+        for (const [pair, rate] of values) {
             const [currency] = pair.split("-");
-            rates[currency] = prices[index];
-        });
+            rates[currency] = rate;
+        }
 
         return res.status(200).json(rates);
     } catch (error) {
