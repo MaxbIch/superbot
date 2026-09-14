@@ -6,6 +6,7 @@ import CurrencyPage from "./pages/CurrencyPage";
 import HousingPage from "./pages/HousingPage";
 import VisaPage from "./pages/VisaPage.tsx";
 import ToursPage from "./pages/ToursPage";
+import TourDetailPage from "./pages/TourDetailPage";
 import PlacesPage from "./pages/PlacesPage";
 import ReviewsPage from "./pages/ReviewsPage";
 
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/housing" element={<HousingPage />} />
           <Route path="/visarun" element={<VisaPage />} />
           <Route path="/tours" element={<ToursPage />} />
+          <Route path="/tours/:id" element={<TourDetailPage />} />
           <Route path="/places" element={<PlacesPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
         </Routes>
