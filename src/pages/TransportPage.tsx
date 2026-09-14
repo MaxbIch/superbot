@@ -12,13 +12,13 @@ import { carLead } from "../data/carLead";
 const options = [
     {
         type: "bike" as const,
-        image: "/category-icons/bikes.svg",
+        image: "/category-icon/transport.png",
         title: "Аренда байка",
         description: "Vision, Airblade, NVX, PCX и другие",
     },
     {
         type: "car" as const,
-        image: "/category-icons/auto.svg",
+        image: "/category-icon/transport.png",
         title: "Аренда автомобиля",
         description: "Седан, кроссовер или минивэн",
     },
@@ -38,7 +38,7 @@ export default function TransportPage() {
             <BackButton />
             <div className="animate-fade-in-up">
                 <div className="mb-5">
-                    <img src="/category-icons/transport.svg" alt="" aria-hidden="true" className="w-16 h-16 object-contain" />
+                    <img src="/category-icon/transport.png" alt="" aria-hidden="true" className="w-16 h-16 object-contain" />
                     <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-2">Авто и байки</h1>
                     <p className="text-ink-muted mt-1 text-sm">Выберите тип транспорта</p>
                 </div>
