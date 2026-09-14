@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
+
 import Layout from "../components/Layout";
 import CategoryCard from "../components/CategoryCard";
 import Card from "../components/Card";
-import ContactButton from "../components/ContactButton";
 
 import { categories } from "../data/categories";
 
@@ -100,7 +101,26 @@ export default function HomePage() {
                 </div>
             </Card>
 
-            <ContactButton />
+            <Link to="/reviews" className="block animate-fade-in-up">
+                <Card hover padding="md" className="group mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-3xl">
+                            ⭐
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-ink text-base sm:text-lg">
+                                Отзывы клиентов
+                            </h3>
+                            <p className="text-sm text-ink-muted mt-0.5">
+                                Узнайте, что говорят о Super Bot Nha Trang
+                            </p>
+                        </div>
+                        <span className="text-xl text-brand-400 group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all">
+                            →
+                        </span>
+                    </div>
+                </Card>
+            </Link>
         </Layout>
     );
 }
