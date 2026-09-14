@@ -67,7 +67,7 @@ export const housingLead: LeadConfig =
                     "Бюджет",
 
                 options: [
-                    "До 5.000.000 ₫",
+                    "До 5 млн ₫",
                     "5-10 млн ₫",
                     "10-15 млн ₫",
                     "15-20 млн ₫",
