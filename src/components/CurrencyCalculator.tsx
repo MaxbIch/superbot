@@ -9,14 +9,15 @@ import { hapticFeedback } from "../lib/telegram";
 
 type Currency = "RUB" | "USD" | "EUR" | "USDT" | "VND";
 type ExchangeCurrency = Exclude<Currency, "VND">;
+type CurrencyItem = { value: ExchangeCurrency; label: string; flag: string; image?: boolean };
 
 type GoogleRates = Record<ExchangeCurrency, number>;
 
-const currencies: { value: ExchangeCurrency; label: string; flag: string }[] = [
+const currencies: CurrencyItem[] = [
     { value: "RUB", label: "RUB", flag: "🇷🇺" },
     { value: "USD", label: "USD", flag: "🇺🇸" },
     { value: "EUR", label: "EUR", flag: "🇪🇺" },
-    { value: "USDT", label: "USDT", flag: "🪙" },
+    { value: "USDT", label: "USDT", flag: "/usdt.png", image: true },
 ];
 
 export default function CurrencyCalculator() {
@@ -139,7 +140,7 @@ export default function CurrencyCalculator() {
         );
     }
 
-    const sourceCurrencies: { value: Currency; label: string; flag: string }[] = [
+    const sourceCurrencies: { value: Currency; label: string; flag: string; image?: boolean }[] = [
         ...currencies,
         { value: "VND", label: "VND", flag: "🇻🇳" },
     ];
@@ -162,7 +163,7 @@ export default function CurrencyCalculator() {
                             onClick={() => handleFromCurrency(item.value)}
                             className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all min-h-[64px] ${fromCurrency === item.value ? "border-brand-600 bg-brand-50 shadow-sm" : "border-border bg-surface-muted hover:border-brand-300"}`}
                         >
-                            <span className="text-xl">{item.flag}</span>
+                            {item.image ? <img src={item.flag} alt="USDT" className="w-5 h-5 object-contain" /> : <span className="text-xl">{item.flag}</span>}
                             <span className="text-xs font-semibold">{item.label}</span>
                         </button>
                     ))}
@@ -178,7 +179,7 @@ export default function CurrencyCalculator() {
                                     onClick={() => { setToCurrency(item.value); setSent(false); }}
                                     className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all min-h-[64px] ${toCurrency === item.value ? "border-brand-600 bg-brand-50 shadow-sm" : "border-border bg-surface-muted hover:border-brand-300"}`}
                                 >
-                                    <span className="text-xl">{item.flag}</span>
+                                    {item.image ? <img src={item.flag} alt="USDT" className="w-5 h-5 object-contain" /> : <span className="text-xl">{item.flag}</span>}
                                     <span className="text-xs font-semibold">{item.label}</span>
                                 </button>
                             ))}
@@ -219,7 +220,13 @@ export default function CurrencyCalculator() {
                     <h3 className="font-semibold text-ink mb-4">Результат</h3>
                     <div className="text-center py-4">
                         <div className="text-5xl mb-3">
-                            {(isVndSource ? currencies.find((item) => item.value === toCurrency) : { flag: "🇻🇳" })?.flag}
+                            {isVndSource ? (
+                                currencies.find((item) => item.value === toCurrency)?.image ? (
+                                    <img src={currencies.find((item) => item.value === toCurrency)?.flag} alt={toCurrency} className="w-12 h-12 object-contain mx-auto" />
+                                ) : (
+                                    currencies.find((item) => item.value === toCurrency)?.flag
+                                )
+                            ) : "🇻🇳"}
                         </div>
                         <div className="text-3xl sm:text-4xl font-extrabold text-brand-700">
                             {Number(calculation.result).toLocaleString("ru-RU", { maximumFractionDigits: 2 })}{" "}
@@ -238,7 +245,7 @@ export default function CurrencyCalculator() {
                     <RateRow label="🇷🇺 RUB" value={rates.RUB.rate} />
                     <RateRow label="🇺🇸 USD" value={rates.USD.rate} />
                     <RateRow label="🇪🇺 EUR" value={rates.EUR.rate} />
-                    <RateRow label="🪙 USDT" value={rates.USDT.rate} />
+                    <RateRow label="USDT" value={rates.USDT.rate} icon="/usdt.png" />
                 </div>
                 <p className="mt-3 text-xs text-ink-muted">
                     Эти курсы используются только для обмена валюты в VND.
@@ -256,10 +263,13 @@ export default function CurrencyCalculator() {
     );
 }
 
-function RateRow({ label, value }: { label: string; value?: number }) {
+function RateRow({ label, value, icon }: { label: string; value?: number; icon?: string }) {
     return (
         <div className="flex justify-between items-center">
-            <span className="text-sm text-ink-muted">{label}</span>
+            <span className="text-sm text-ink-muted inline-flex items-center gap-1">
+                {icon ? <img src={icon} alt="USDT" className="w-5 h-5 object-contain" /> : label}
+                {icon ? label : null}
+            </span>
             <strong className="text-ink">{Number(value ?? 0).toLocaleString("ru-RU")} ₫</strong>
         </div>
     );
