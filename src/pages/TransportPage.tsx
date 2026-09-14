@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import Layout from "../components/Layout";
 import BackButton from "../components/BackButton";
@@ -24,7 +25,10 @@ const options = [
 ];
 
 export default function TransportPage() {
-    const [type, setType] = useState<"bike" | "car" | null>(null);
+    const [searchParams] = useSearchParams();
+    const requestedType = searchParams.get("type");
+    const initialType = requestedType === "bike" || requestedType === "car" ? requestedType : null;
+    const [type, setType] = useState<"bike" | "car" | null>(initialType);
 
     if (type === "bike") {
         return <LeadFormPage config={bikeLead} />;
@@ -58,13 +62,7 @@ export default function TransportPage() {
                             onClick={() => setType(option.type)}
                         >
                             <div className="flex items-center gap-4">
-                                <div
-                                    className="
-                                        w-14 h-14 rounded-2xl
-                                        bg-gradient-to-br from-brand-100 to-brand-200
-                                        flex items-center justify-center text-3xl
-                                    "
-                                >
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-3xl">
                                     {option.emoji}
                                 </div>
                                 <div>
