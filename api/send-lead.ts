@@ -18,8 +18,7 @@ function escapeHtml(text: string): string {
     return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/>/g, "&gt;");
 }
 
 function formatLeadMessage(payload: LeadPayload): string {
@@ -48,11 +47,7 @@ function formatLeadMessage(payload: LeadPayload): string {
             .filter(Boolean)
             .join(" ");
 
-        if (name && payload.user.id) {
-            lines.push(
-                `<a href="tg://user?id=${payload.user.id}">Имя: ${escapeHtml(name)}</a>`,
-            );
-        } else if (name) {
+        if (name) {
             lines.push(`Имя: ${escapeHtml(name)}`);
         }
 
@@ -98,7 +93,21 @@ async function sendTelegramMessage(
     botToken: string,
     chatId: string,
     text: string,
+    userId?: number,
 ): Promise<void> {
+    const replyMarkup = userId
+        ? {
+              inline_keyboard: [
+                  [
+                      {
+                          text: "💬 Написать клиенту",
+                          url: `tg://user?id=${userId}`,
+                      },
+                  ],
+              ],
+          }
+        : undefined;
+
     const response = await fetch(
         `https://api.telegram.org/bot${botToken}/sendMessage`,
         {
@@ -108,6 +117,7 @@ async function sendTelegramMessage(
                 chat_id: chatId,
                 text,
                 parse_mode: "HTML",
+                ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
             }),
         },
     );
@@ -190,6 +200,7 @@ export default async function handler(
             botToken,
             adminChatId,
             formatLeadMessage(payload),
+            payload.user?.id,
         );
 
         return res.status(200).json({ ok: true });
