@@ -72,7 +72,11 @@ async function telegramApi(
 }
 
 export default async function handler(
-    req: { method?: string; body?: unknown },
+    req: {
+        method?: string;
+        body?: unknown;
+        headers?: Record<string, string | string[] | undefined>;
+    },
     res: {
         status: (code: number) => {
             json: (data: unknown) => void;
@@ -85,9 +89,21 @@ export default async function handler(
 
     const token = readEnv("TELEGRAM_BOT_TOKEN");
     const adminChatId = readEnv("TELEGRAM_ADMIN_CHAT_ID");
+    const webhookSecret = readEnv("TELEGRAM_WEBHOOK_SECRET");
 
-    if (!token || !adminChatId) {
-        return res.status(500).json({ error: "Telegram environment variables are missing" });
+    if (!token || !adminChatId || !webhookSecret) {
+        return res.status(500).json({
+            error: "Telegram environment variables are missing",
+        });
+    }
+
+    const receivedSecret = req.headers?.["x-telegram-bot-api-secret-token"];
+    const receivedSecretValue = Array.isArray(receivedSecret)
+        ? receivedSecret[0]
+        : receivedSecret;
+
+    if (receivedSecretValue !== webhookSecret) {
+        return res.status(401).json({ error: "Unauthorized" });
     }
 
     const update = req.body as TelegramUpdate | undefined;
