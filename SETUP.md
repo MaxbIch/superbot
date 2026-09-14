@@ -1,106 +1,139 @@
-# Настройка Telegram-бота для Superbot
+# Superbot — деплой, Mini App и заявки в Telegram
 
-Это руководство поможет создать бота, подключить его к проекту и начать получать заявки.
+## Что уже есть в проекте
 
-## 1. Создайте бота в Telegram
+- Фронтенд (React + Vite) — деплой на Vercel
+- `POST /api/send-lead` — отправка заявок в Telegram
+- `GET /api/rates` — курсы из Google Sheets
 
-1. Откройте [@BotFather](https://t.me/BotFather) в Telegram
-2. Отправьте команду `/newbot`
-3. Введите **имя** бота (например: `Супер бот Нячанга`)
-4. Введите **username** бота (например: `nha_trang_superbot`) — должен заканчиваться на `bot`
-5. BotFather пришлёт **токен** вида `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` — сохраните его
+Секреты **не хранятся в GitHub** — только в `.env` локально и в **Environment Variables** на Vercel.
 
-## 2. Узнайте свой Chat ID (админ)
+---
 
-Бот будет отправлять заявки на ваш личный Telegram.
+## 1. Обновить GitHub (новые изменения)
 
-**Способ 1 — через @userinfobot:**
-1. Откройте [@userinfobot](https://t.me/userinfobot)
-2. Нажмите Start
-3. Скопируйте ваш **Id** (число, например `987654321`)
+На своём Mac в папке проекта:
 
-**Способ 2 — через API:**
-1. Напишите вашему новому боту любое сообщение (например «Привет»)
-2. Откройте в браузере:
-   ```
-   https://api.telegram.org/bot<ВАШ_ТОКЕН>/getUpdates
-   ```
-3. Найдите `"chat":{"id":987654321}` — это ваш Chat ID
+```bash
+cd /Users/maxsvirski/Work/superbot
 
-## 3. Настройте переменные окружения
+git status          # что изменилось
+git add .           # добавить все файлы ( .env не попадёт — он в .gitignore )
+git commit -m "Описание изменений"
+git push origin main
+```
 
-Скопируйте пример и заполните значения:
+Если `git status` пишет *nothing to commit* и *up to date with origin/main* — на GitHub **уже лежит** текущая версия кода, пушить нечего.
+
+**Vercel:** если репозиторий подключён к проекту, после `git push` деплой обычно стартует сам (1–3 минуты). Проверка: Vercel → Project → Deployments.
+
+**Что мне (или другому разработчику) отправлять:** ссылку на репозиторий `https://github.com/MaxbIch/superbot` — **не** присылайте токен бота и `.env`.
+
+---
+
+## 2. Переменные на Vercel
+
+Vercel → ваш проект → **Settings → Environment Variables**
+
+| Переменная | Пример | Где |
+|------------|--------|-----|
+| `TELEGRAM_BOT_TOKEN` | от @BotFather | Production + Preview |
+| `TELEGRAM_ADMIN_CHAT_ID` | ID группы или лички (см. ниже) | Production + Preview |
+| `VITE_TELEGRAM_BOT_USERNAME` | `nha_trang_superbot` **без @** | Production + Preview |
+
+После изменения переменных: **Deployments → … → Redeploy** (для `VITE_*` обязательно пересобрать).
+
+Локально:
 
 ```bash
 cp .env.example .env
+# заполните .env и перезапустите npm run dev
 ```
 
-Отредактируйте `.env`:
+---
 
-```env
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
-TELEGRAM_ADMIN_CHAT_ID=987654321
-VITE_TELEGRAM_BOT_USERNAME=nha_trang_superbot
-```
+## 3. Заявки в группу с админами
 
-| Переменная | Описание |
-|---|---|
-| `TELEGRAM_BOT_TOKEN` | Токен от BotFather (секретный, только на сервере) |
-| `TELEGRAM_ADMIN_CHAT_ID` | Ваш Telegram ID — сюда приходят заявки |
-| `VITE_TELEGRAM_BOT_USERNAME` | Username бота без `@` — для кнопок «Связаться» |
+Код уже шлёт все заявки на `TELEGRAM_ADMIN_CHAT_ID` — подойдёт **и личный чат, и группа**.
 
-## 4. Запуск локально
+### Создать группу
 
-```bash
-npm install
-npm run dev
-```
+1. Telegram → **Новая группа** (например «Superbot — заявки»).
+2. Добавьте **бота** (@nha_trang_superbot) в группу.
+3. Сделайте бота **администратором** с правом **отправлять сообщения** (остальное по желанию).
 
-Откройте http://localhost:5173/
+### Узнать ID группы
 
-API `/api/send-lead` работает локально через Vite middleware — заявки будут уходить в Telegram, если `.env` заполнен.
+1. Напишите в группе любое сообщение (например `test`).
+2. В браузере (подставьте свой токен):
 
-## 5. Создайте Mini App (опционально)
+   ```
+   https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getUpdates
+   ```
 
-Чтобы открывать приложение прямо в Telegram:
+3. Найдите блок `"chat":{"id":-1001234567890,...}` — это **ID группы** (часто начинается с `-100`).
 
-1. Задеплойте проект на [Vercel](https://vercel.com) (см. шаг 6)
-2. В [@BotFather](https://t.me/BotFather) отправьте `/newapp`
-3. Выберите вашего бота
-4. Укажите название, описание и загрузите иконку
-5. Укажите URL вашего приложения (например `https://superbot.vercel.app`)
-6. BotFather создаст ссылку вида `https://t.me/your_bot/app`
+4. Вставьте его в Vercel и локальный `.env`:
 
-Также можно настроить Menu Button:
-```
-/mybots → выберите бота → Bot Settings → Menu Button → Configure
-```
+   ```env
+   TELEGRAM_ADMIN_CHAT_ID=-1001234567890
+   ```
 
-## 6. Деплой на Vercel
+5. Redeploy на Vercel.
 
-1. Загрузите проект на GitHub
-2. Импортируйте репозиторий в [Vercel](https://vercel.com)
-3. В **Settings → Environment Variables** добавьте:
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_ADMIN_CHAT_ID`
-   - `VITE_TELEGRAM_BOT_USERNAME`
-4. Нажмите Deploy
+### Проверка
 
-API-роуты в папке `api/` автоматически станут serverless-функциями:
-- `POST /api/send-lead` — отправка заявок админу
-- `GET /api/rates` — курсы валют из Google Sheets
+Откройте сайт / Mini App → любая форма → **Отправить заявку**. Сообщение должно появиться **в группе**.
 
-## 7. Проверка
+**Типичные ошибки**
 
-1. Откройте приложение
-2. Перейдите в любой раздел с формой (Жильё, Визараны, Транспорт)
-3. Заполните все поля и нажмите **«Отправить заявку»**
-4. В Telegram должно прийти сообщение с данными заявки и информацией о клиенте (если открыто через Mini App)
+| Ошибка | Решение |
+|--------|---------|
+| Chat not found | Неверный ID; бот не в группе |
+| Bot was kicked / not a member | Снова добавьте бота |
+| Have no rights to send | Выдайте боту право писать в группе |
 
-## Куда отправляются заявки
+---
 
-| Раздел | Категория |
-|---|---|
+## 4. Mini App в Telegram (ваше приложение внутри Telegram)
+
+Приложение **не крутится на вашем компьютере** — оно открывается по URL с Vercel. Vercel держит сайт и API **постоянно доступными** (serverless + CDN). «Всегда запущено» = задеплоено на Vercel с рабочими env.
+
+### Шаг A — URL продакшена
+
+1. Vercel → Project → **Domains** — скопируйте URL, например `https://superbot-xxx.vercel.app`.
+2. Откройте в браузере: должна открыться главная, формы работать.
+
+### Шаг B — Mini App в BotFather
+
+1. [@BotFather](https://t.me/BotFather) → `/mybots` → ваш бот.
+2. **Bot Settings → Menu Button → Configure**  
+   - Тип: **Web App**  
+   - URL: `https://ваш-домен.vercel.app` (без слэша в конце или как принимает BotFather)
+3. Либо создайте приложение: `/newapp` → выберите бота → укажите тот же URL.
+
+Пользователь открывает бота → кнопка **Menu** (или ссылка вида `https://t.me/nha_trang_superbot/app`) → внутри Telegram грузится ваш сайт.
+
+### Шаг C — проверка заявок из Mini App
+
+В Mini App Telegram передаёт данные пользователя — в заявке в группе будут имя, @username и ID (если пользователь не скрыл username).
+
+---
+
+## 5. Бот (кратко)
+
+1. @BotFather → `/newbot` → токен → `TELEGRAM_BOT_TOKEN`.
+2. Группа + ID → `TELEGRAM_ADMIN_CHAT_ID`.
+3. Username без `@` → `VITE_TELEGRAM_BOT_USERNAME`.
+4. Vercel env + redeploy.
+5. Menu Button / `/newapp` → URL Vercel.
+
+---
+
+## 6. Категории заявок
+
+| Раздел | category |
+|--------|----------|
 | Аренда байка | `transport/bike` |
 | Аренда авто | `transport/car` |
 | Жильё | `housing` |
@@ -108,16 +141,13 @@ API-роуты в папке `api/` автоматически станут serv
 | Туры | `tours` |
 | Обмен валют | `currency` |
 
-## Устранение проблем
+---
 
-**«Telegram bot is not configured»**
-→ Проверьте, что `.env` содержит `TELEGRAM_BOT_TOKEN` и `TELEGRAM_ADMIN_CHAT_ID`, и перезапустите `npm run dev`
+## 7. Локальная разработка
 
-**Заявки не приходят**
-→ Убедитесь, что вы написали боту хотя бы одно сообщение (Telegram не даёт боту писать первым незнакомым пользователям — но админ может получать, если ранее писал боту)
+```bash
+npm install
+npm run dev
+```
 
-**403 Forbidden от Telegram API**
-→ Проверьте правильность токена
-
-**Chat not found**
-→ Проверьте Chat ID; напишите боту `/start` и повторите getUpdates
+http://localhost:5173/ — API `/api/send-lead` и `/api/rates` работают через Vite (нужен заполненный `.env`).
