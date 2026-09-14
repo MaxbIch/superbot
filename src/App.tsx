@@ -7,6 +7,7 @@ import HousingPage from "./pages/HousingPage";
 import VisaPage from "./pages/VisaPage.tsx";
 import ToursPage from "./pages/ToursPage";
 import PlacesPage from "./pages/PlacesPage";
+import ReviewsPage from "./pages/ReviewsPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/visarun" element={<VisaPage />} />
           <Route path="/tours" element={<ToursPage />} />
           <Route path="/places" element={<PlacesPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
         </Routes>
       </BrowserRouter>
   );
