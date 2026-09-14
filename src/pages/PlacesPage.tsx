@@ -59,3 +59,5 @@ export default function PlacesPage() {
         </Layout>
     );
 }
+
+// Keep the latest production UI changes on main and trigger a fresh deployment.
