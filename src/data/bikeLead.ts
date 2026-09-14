@@ -26,6 +26,34 @@ export const bikeLead: LeadConfig =
             },
 
             {
+                id: "bike",
+                title:
+                    "Какой байк нужен?",
+
+                options: [
+                    "Vision",
+                    "Airblade",
+                    "NVX",
+                    "PCX",
+                    "Не важно",
+                ],
+            },
+
+            {
+                id: "bike",
+                title:
+                    "Какой байк нужен?",
+
+                options: [
+                    "Vision",
+                    "Airblade",
+                    "NVX",
+                    "PCX",
+                    "Не важно",
+                ],
+            },
+
+            {
                 id: "term",
                 title:
                     "Срок аренды",
