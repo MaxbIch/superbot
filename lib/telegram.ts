@@ -17,7 +17,9 @@ export interface LeadPayload {
 export function formatLeadMessage(payload: LeadPayload): string {
     const lines: string[] = [];
 
-    lines.push(`<b>${payload.emoji ?? "📋"} ${payload.title}</b>`);
+    lines.push(
+        `<b>${payload.emoji ?? "📋"} ${escapeHtml(payload.title)}</b>`,
+    );
     lines.push(`<i>Категория: ${payload.category}</i>`);
     lines.push("");
 
@@ -80,8 +82,41 @@ export async function sendTelegramMessage(
     );
 
     if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Telegram API error: ${error}`);
+        const raw = await response.text();
+        throw new Error(formatTelegramError(raw, chatId));
+    }
+}
+
+function formatTelegramError(raw: string, chatId: string): string {
+    try {
+        const data = JSON.parse(raw) as {
+            description?: string;
+        };
+
+        const description = data.description ?? raw;
+
+        if (description.includes("chat not found")) {
+            return `Telegram: чат ${chatId} не найден. Проверьте TELEGRAM_ADMIN_CHAT_ID (для группы ID вида -100…), бот должен быть в группе.`;
+        }
+
+        if (
+            description.includes("bot was blocked") ||
+            description.includes("can't initiate conversation")
+        ) {
+            return "Telegram: напишите боту /start в личку (если заявки идут на ваш ID) или добавьте бота в группу админов.";
+        }
+
+        if (description.includes("not a member")) {
+            return "Telegram: бот не состоит в группе. Добавьте бота в группу и дайте право писать сообщения.";
+        }
+
+        if (description.includes("Unauthorized")) {
+            return "Telegram: неверный TELEGRAM_BOT_TOKEN. Проверьте токен в BotFather и в Vercel.";
+        }
+
+        return `Telegram: ${description}`;
+    } catch {
+        return `Telegram API error: ${raw}`;
     }
 }
 

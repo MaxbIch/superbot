@@ -138,7 +138,7 @@ export default function LeadFormPage({ config }: Props) {
                         </div>
 
                         {error && (
-                            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">
+                            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm leading-relaxed">
                                 {error}
                             </div>
                         )}
