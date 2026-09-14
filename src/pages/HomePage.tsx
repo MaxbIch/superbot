@@ -29,12 +29,12 @@ export default function HomePage() {
         <Layout>
             <Card
                 padding="none"
-                className="mb-5 animate-fade-in-up overflow-hidden relative h-[56vh] min-h-[320px] max-h-[560px] sm:h-[430px] sm:min-h-0 sm:max-h-none"
+                className="mb-5 animate-fade-in-up overflow-hidden"
             >
                 <img
                     src="/mainImg.png"
                     alt="Нячанг — Super Bot"
-                    className="absolute inset-0 h-full w-full object-cover object-center"
+                    className="block w-full h-auto"
                 />
             </Card>
 
