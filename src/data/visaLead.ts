@@ -22,9 +22,8 @@ export const visaLead: LeadConfig = {
             id: "visaType",
             title: "Тип визы",
             options: [
-                "Продление",
                 "Новая виза",
-                "Visa Run",
+                "Продление",
             ],
         },
 
@@ -33,18 +32,30 @@ export const visaLead: LeadConfig = {
             title: "На какой срок?",
             options: [
                 "30 дней",
+                "45 дней",
                 "90 дней",
-                "180 дней",
             ],
         },
 
         {
             id: "when",
             title: "Когда нужно?",
+            type: "date",
+            description: "Выберите дату окончания действующей визы",
+            showWhen: {
+                questionId: "visaType",
+                value: "Продление",
+            },
+        },
+
+        {
+            id: "people",
+            title: "Количество человек",
             options: [
-                "Сегодня",
-                "На этой неделе",
-                "В течение месяца",
+                "1 человек",
+                "2 человека",
+                "3 человека",
+                "4+ человека",
             ],
         },
     ],
