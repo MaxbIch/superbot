@@ -141,32 +141,34 @@ export default function LeadFormPage({ config }: Props) {
                     </p>
                 </div>
 
-                <Card className="mb-4">
+                <Card className="mb-4 overflow-hidden">
                     {visibleQuestions.map((question) => (
-                        <div key={question.id}>
+                        <div key={question.id} className="min-w-0">
                             {question.type === "date" ? (
-                                <div className="mb-6 last:mb-0">
+                                <div className="mb-5 last:mb-0 min-w-0">
                                     <h3 className="font-semibold text-ink mb-1 text-sm sm:text-base">
                                         {question.title}
                                     </h3>
 
                                     {question.description && (
-                                        <p className="text-ink-muted text-xs sm:text-sm mb-3">
+                                        <p className="text-ink-muted text-xs sm:text-sm mb-2">
                                             {question.description}
                                         </p>
                                     )}
 
-                                    <input
-                                        type="date"
-                                        value={answers[question.id] || ""}
-                                        onChange={(event) =>
-                                            handleChange(
-                                                question,
-                                                event.target.value,
-                                            )
-                                        }
-                                        className="w-full min-h-[48px] px-4 py-2.5 rounded-xl border-2 border-border bg-surface-muted text-ink text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
-                                    />
+                                    <div className="min-w-0 max-w-full overflow-hidden">
+                                        <input
+                                            type="date"
+                                            value={answers[question.id] || ""}
+                                            onChange={(event) =>
+                                                handleChange(
+                                                    question,
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className="block w-full max-w-full min-w-0 h-12 box-border px-3 py-2 rounded-xl border-2 border-border bg-surface-muted text-ink text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 appearance-none"
+                                        />
+                                    </div>
                                 </div>
                             ) : (
                                 <OptionGroup
