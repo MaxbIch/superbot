@@ -12,8 +12,8 @@ export default function OptionGroup({
     onChange,
 }: Props) {
     return (
-        <div className="mb-5 last:mb-0">
-            <h3 className="font-semibold text-ink mb-2 text-sm sm:text-base">
+        <div className="mb-6 last:mb-0">
+            <h3 className="font-semibold text-ink mb-3 text-sm sm:text-base">
                 {title}
             </h3>
 
