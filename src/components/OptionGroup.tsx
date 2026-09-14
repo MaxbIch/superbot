@@ -13,7 +13,7 @@ export default function OptionGroup({
 }: Props) {
     return (
         <div>
-            <h3 className="font-semibold text-ink mb-3 text-sm sm:text-base">
+            <h3 className="font-semibold text-ink mb-1 text-sm sm:text-base">
                 {title}
             </h3>
 
