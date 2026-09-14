@@ -1,7 +1,15 @@
+export type LeadQuestionType = "options" | "date";
+
 export interface LeadQuestion {
     id: string;
     title: string;
-    options: string[];
+    options?: string[];
+    type?: LeadQuestionType;
+    description?: string;
+    showWhen?: {
+        questionId: string;
+        value: string;
+    };
 }
 
 export interface LeadConfig {
