@@ -7,11 +7,11 @@ import PlaceCard from "../components/PlaceCard";
 import { places } from "../data/places";
 
 const categoryIcons = {
-    food: "/category-icons/food.svg",
-    sport: "/category-icons/sport.svg",
-    beaches: "/category-icons/beaches.svg",
-    hiking: "/category-icons/hiking.svg",
-    clubs: "/category-icons/clubs.svg",
+    food: "/category-icons/food.png",
+    sport: "/category-icons/sport.png",
+    beaches: "/category-icons/beaches.png",
+    hiking: "/category-icons/hiking.png",
+    clubs: "/category-icons/clubs.png",
 } as const;
 
 const categories = [
