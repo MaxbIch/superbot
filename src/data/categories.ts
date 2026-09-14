@@ -2,20 +2,20 @@ import type { Category } from "../types/category";
 
 export const categories: Category[] = [
     {
-        id: "auto",
-        title: "Авто",
-        description: "Аренда автомобилей в Нячанге",
-        icon: "🚗",
-        image: "/category-icons/auto.svg",
-        path: "/transport?type=car",
+        id: "housing",
+        title: "Жилье",
+        description: "Квартиры, дома и виллы в Нячанге",
+        icon: "🏠",
+        image: "/category-icons/housing.svg",
+        path: "/housing",
     },
     {
-        id: "bikes",
-        title: "Байки",
-        description: "Аренда мотобайков в Нячанге",
+        id: "transport",
+        title: "Байки & Авто",
+        description: "Аренда мотобайков и автомобилей",
         icon: "🏍️",
-        image: "/category-icons/bikes.svg",
-        path: "/transport?type=bike",
+        image: "/category-icons/auto.svg",
+        path: "/transport",
     },
     {
         id: "exchange",
