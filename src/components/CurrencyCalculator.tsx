@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
 
 import Card from "./Card";
 import Button from "./Button";
@@ -148,11 +147,8 @@ export default function CurrencyCalculator() {
     return (
         <div className="space-y-4 animate-fade-in-up">
             <Card>
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4">
                     <h3 className="font-semibold text-ink">Калькулятор</h3>
-                    <button onClick={loadAllRates} className="p-2 rounded-lg hover:bg-brand-50 text-brand-600 transition" aria-label="Обновить курсы">
-                        <RefreshCw className="w-4 h-4" />
-                    </button>
                 </div>
 
                 <p className="text-sm text-ink-muted mb-3">Отдаю</p>
