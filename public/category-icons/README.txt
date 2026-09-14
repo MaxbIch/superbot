@@ -1,1 +1,0 @@
-Generated category icons are embedded in PlacesPage.tsx.
