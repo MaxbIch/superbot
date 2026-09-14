@@ -6,7 +6,7 @@ export const categories: Category[] = [
         title: "Авто и байки",
         description: "Аренда автомобилей и мотобайков",
         icon: "🏍️",
-        image: "/category-icons/transport.svg",
+        image: "/category-icon/transport.png",
         path: "/transport",
     },
     {
@@ -14,7 +14,7 @@ export const categories: Category[] = [
         title: "Обмен",
         description: "Курсы валют и обмен",
         icon: "💵",
-        image: "/category-icons/exchange.svg",
+        image: "/category-icon/exchange.png",
         path: "/currency",
     },
     {
@@ -22,7 +22,7 @@ export const categories: Category[] = [
         title: "Жилье",
         description: "Квартиры, дома и виллы в Нячанге",
         icon: "🏠",
-        image: "/category-icons/housing.svg",
+        image: "/category-icon/housing.png",
         path: "/housing",
     },
     {
@@ -30,7 +30,7 @@ export const categories: Category[] = [
         title: "Визаран",
         description: "Визы и выезды из Вьетнама",
         icon: "🛂",
-        image: "/category-icons/visaruns.svg",
+        image: "/category-icon/visaruns.png",
         path: "/visarun",
     },
     {
@@ -38,7 +38,7 @@ export const categories: Category[] = [
         title: "Туры",
         description: "Экскурсии и путешествия",
         icon: "🌴",
-        image: "/category-icons/tours.svg",
+        image: "/category-icon/tours.png",
         path: "/tours",
     },
     {
@@ -46,7 +46,7 @@ export const categories: Category[] = [
         title: "Места",
         description: "Кафе, пляжи, спорт и клубы",
         icon: "📍",
-        image: "/category-icons/places.svg",
+        image: "/category-icon/places.png",
         path: "/places",
     },
 ];
