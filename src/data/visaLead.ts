@@ -39,7 +39,7 @@ export const visaLead: LeadConfig = {
 
         {
             id: "when",
-            title: "Когда нужно?",
+            title: "Дата окончания визы",
             type: "date",
             description: "Выберите дату окончания действующей визы",
             showWhen: {
