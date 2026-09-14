@@ -32,7 +32,7 @@ export default function HomePage() {
                 className="mb-5 animate-fade-in-up overflow-hidden relative h-[56vh] min-h-[320px] max-h-[560px] sm:h-[430px] sm:min-h-0 sm:max-h-none"
             >
                 <img
-                    src="/hero-mobile.webp"
+                    src="/mainImg.png"
                     alt="Нячанг — Super Bot"
                     className="absolute inset-0 h-full w-full object-cover object-center"
                 />
