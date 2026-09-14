@@ -77,7 +77,7 @@ export default function PlaceDetailPage() {
                     <div className="mt-5"><h3 className="font-semibold text-ink mb-3">Почему стоит сходить</h3><ul className="space-y-2.5">{place.highlights.map((item) => <li key={item} className="flex gap-2.5 text-sm text-ink-muted"><span className="text-brand-600">✓</span><span>{item}</span></li>)}</ul></div>
                 </Card>
 
-                {place.socials?.length > 0 && <Card padding="md" className="mb-5"><h2 className="text-lg font-bold text-ink mb-3">Социальные сети</h2><div className="flex flex-wrap gap-2">{place.socials.map((social) => <a key={social.url} href={social.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 transition"><ExternalLink className="w-4 h-4" />{social.label}</a>)}</div></Card>}
+                {!!place.socials?.length && <Card padding="md" className="mb-5"><h2 className="text-lg font-bold text-ink mb-3">Социальные сети</h2><div className="flex flex-wrap gap-2">{place.socials.map((social) => <a key={social.url} href={social.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 transition"><ExternalLink className="w-4 h-4" />{social.label}</a>)}</div></Card>}
                 <Button fullWidth size="lg" icon={<MapPin className="w-5 h-5" />} onClick={() => window.open(place.maps, "_blank")}>Открыть маршрут</Button>
             </div>
         </Layout>
