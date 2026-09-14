@@ -197,7 +197,7 @@ export default function CurrencyCalculator() {
                     <div className="flex items-center justify-between gap-4">
                         <div>
                             <p className="text-sm text-ink-muted">Курс</p>
-                            <p className="text-xl font-bold text-brand-700">
+                            <p className="text-lg font-bold text-brand-700">
                                 {Number(calculation.rate).toLocaleString("ru-RU")} ₫ за 1 {isVndSource ? toCurrency : fromCurrency}
                             </p>
                         </div>
@@ -236,16 +236,13 @@ export default function CurrencyCalculator() {
             )}
 
             <Card>
-                <h3 className="font-semibold text-ink mb-4">Ваши курсы</h3>
+                <h3 className="font-semibold text-ink mb-4">Курс на 14.09.2026</h3>
                 <div className="space-y-3">
                     <RateRow label="🇷🇺 RUB" value={rates.RUB.rate} />
                     <RateRow label="🇺🇸 USD" value={rates.USD.rate} />
                     <RateRow label="🇪🇺 EUR" value={rates.EUR.rate} />
                     <RateRow label="USDT" value={rates.USDT.rate} icon="/usdt.png" />
                 </div>
-                <p className="mt-3 text-xs text-ink-muted">
-                    Эти курсы используются только для обмена валюты в VND.
-                </p>
             </Card>
 
             {error && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>}
@@ -266,7 +263,7 @@ function RateRow({ label, value, icon }: { label: string; value?: number; icon?:
                 {icon ? <img src={icon} alt="USDT" className="w-5 h-5 object-contain" /> : label}
                 {icon ? label : null}
             </span>
-            <strong className="text-ink">{Number(value ?? 0).toLocaleString("ru-RU")} ₫</strong>
+            <strong className="text-sm text-ink">{Number(value ?? 0).toLocaleString("ru-RU")} ₫</strong>
         </div>
     );
 }
