@@ -16,10 +16,10 @@ interface Props {
 }
 
 const categoryIcons: Record<string, string> = {
-    housing: "/category-icons/housing.svg",
-    "transport/bike": "/category-icons/bikes.svg",
-    "transport/car": "/category-icons/auto.svg",
-    visarun: "/category-icons/visaruns.svg",
+    housing: "/category-icon/housing.png",
+    "transport/bike": "/category-icon/transport.png",
+    "transport/car": "/category-icon/transport.png",
+    visarun: "/category-icon/visaruns.png",
 };
 
 function isQuestionVisible(question: LeadQuestion, answers: Record<string, string>) {
