@@ -10,6 +10,8 @@ import { hapticFeedback } from "../lib/telegram";
 type Currency = "RUB" | "USD" | "EUR" | "USDT" | "VND";
 type ExchangeCurrency = Exclude<Currency, "VND">;
 
+type GoogleRates = Record<ExchangeCurrency, number>;
+
 const currencies: { value: ExchangeCurrency; label: string; flag: string }[] = [
     { value: "RUB", label: "RUB", flag: "🇷🇺" },
     { value: "USD", label: "USD", flag: "🇺🇸" },
@@ -19,6 +21,7 @@ const currencies: { value: ExchangeCurrency; label: string; flag: string }[] = [
 
 export default function CurrencyCalculator() {
     const [rates, setRates] = useState<Rates | null>(null);
+    const [googleRates, setGoogleRates] = useState<GoogleRates | null>(null);
     const [fromCurrency, setFromCurrency] = useState<Currency>("RUB");
     const [toCurrency, setToCurrency] = useState<ExchangeCurrency>("USD");
     const [amount, setAmount] = useState("10000");
@@ -34,9 +37,24 @@ export default function CurrencyCalculator() {
         }
     };
 
+    const loadGoogleRates = async () => {
+        try {
+            const response = await fetch("/api/google-rates");
+            if (!response.ok) throw new Error("Failed to load Google Finance rates");
+            setGoogleRates(await response.json());
+        } catch (err) {
+            console.error(err);
+            setGoogleRates(null);
+        }
+    };
+
+    const loadAllRates = async () => {
+        await Promise.all([loadRates(), loadGoogleRates()]);
+    };
+
     useEffect(() => {
-        loadRates();
-        const interval = setInterval(loadRates, 60000);
+        loadAllRates();
+        const interval = setInterval(loadAllRates, 60000);
         return () => clearInterval(interval);
     }, []);
 
@@ -46,16 +64,21 @@ export default function CurrencyCalculator() {
     const calculation = useMemo(() => {
         if (!rates) return null;
 
+        // VND -> foreign currency: ONLY Google Finance rate.
         if (isVndSource) {
-            const rate = rates[toCurrency].rate;
+            if (!googleRates) return null;
+            const rate = googleRates[toCurrency];
             return {
                 result: numericAmount / rate,
                 rate,
                 isVip: false,
                 minVip: 0,
+                source: "Google Finance",
             };
         }
 
+        // Foreign currency -> VND: keep the original business logic
+        // from the user's Google Sheet, including VIP thresholds.
         const rate = rates[fromCurrency];
         const activeRate = numericAmount >= rate.minVip ? rate.vip : rate.rate;
         return {
@@ -63,8 +86,9 @@ export default function CurrencyCalculator() {
             rate: activeRate,
             isVip: numericAmount >= rate.minVip,
             minVip: rate.minVip,
+            source: "Google Sheets",
         };
-    }, [rates, numericAmount, fromCurrency, toCurrency, isVndSource]);
+    }, [rates, googleRates, numericAmount, fromCurrency, toCurrency, isVndSource]);
 
     const formatInput = (value: string) => {
         const numbers = value.replace(/\D/g, "");
@@ -75,7 +99,6 @@ export default function CurrencyCalculator() {
     const handleFromCurrency = (value: Currency) => {
         setFromCurrency(value);
         setSent(false);
-        if (value === "VND" && toCurrency === "VND") setToCurrency("USD");
     };
 
     const handleExchange = async () => {
@@ -87,7 +110,7 @@ export default function CurrencyCalculator() {
         const fields: Record<string, string> = {
             "Отдаю": `${amount} ${fromCurrency}`,
             "Получаю": `${Number(calculation.result).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} ${resultCurrency}`,
-            "Курс": String(calculation.rate),
+            "Курс": `${calculation.rate} (${calculation.source})`,
         };
 
         try {
@@ -107,7 +130,7 @@ export default function CurrencyCalculator() {
         }
     };
 
-    if (!rates) {
+    if (!rates || (isVndSource && !googleRates)) {
         return (
             <Card>
                 <div className="animate-shimmer h-32 rounded-xl" />
@@ -126,7 +149,7 @@ export default function CurrencyCalculator() {
             <Card>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-ink">Калькулятор</h3>
-                    <button onClick={loadRates} className="p-2 rounded-lg hover:bg-brand-50 text-brand-600 transition" aria-label="Обновить курсы">
+                    <button onClick={loadAllRates} className="p-2 rounded-lg hover:bg-brand-50 text-brand-600 transition" aria-label="Обновить курсы">
                         <RefreshCw className="w-4 h-4" />
                     </button>
                 </div>
@@ -172,45 +195,54 @@ export default function CurrencyCalculator() {
                 />
             </Card>
 
-            <Card className="bg-gradient-to-r from-brand-50 to-emerald-50 border-brand-100">
-                <div className="flex items-center justify-between gap-4">
-                    <div>
-                        <p className="text-sm text-ink-muted">Курс</p>
-                        <p className="text-xl font-bold text-brand-700">
-                            {Number(calculation.rate).toLocaleString("ru-RU")} ₫ за 1 {isVndSource ? toCurrency : fromCurrency}
+            {calculation && (
+                <Card className="bg-gradient-to-r from-brand-50 to-emerald-50 border-brand-100">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm text-ink-muted">Курс</p>
+                            <p className="text-xl font-bold text-brand-700">
+                                {Number(calculation.rate).toLocaleString("ru-RU")} ₫ за 1 {isVndSource ? toCurrency : fromCurrency}
+                            </p>
+                        </div>
+                        <span className="text-xs text-ink-muted text-right">
+                            {isVndSource ? "Google Finance" : "Ваш курс"}
+                        </span>
+                    </div>
+                    {!isVndSource && calculation.isVip && (
+                        <div className="mt-2 text-xs text-brand-700 font-semibold">⭐ VIP-курс</div>
+                    )}
+                </Card>
+            )}
+
+            {calculation && (
+                <Card>
+                    <h3 className="font-semibold text-ink mb-4">Результат</h3>
+                    <div className="text-center py-4">
+                        <div className="text-5xl mb-3">
+                            {(isVndSource ? currencies.find((item) => item.value === toCurrency) : { flag: "🇻🇳" })?.flag}
+                        </div>
+                        <div className="text-3xl sm:text-4xl font-extrabold text-brand-700">
+                            {Number(calculation.result).toLocaleString("ru-RU", { maximumFractionDigits: 2 })}{" "}
+                            <span className="text-2xl">{isVndSource ? toCurrency : "VND"}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-ink-muted">
+                            за {Number(numericAmount).toLocaleString("ru-RU")} {fromCurrency}
                         </p>
                     </div>
-                    <span className="text-xs text-ink-muted text-right">Google / актуальный курс</span>
-                </div>
-                {!isVndSource && calculation.isVip && (
-                    <div className="mt-2 text-xs text-brand-700 font-semibold">⭐ VIP-курс</div>
-                )}
-            </Card>
+                </Card>
+            )}
 
             <Card>
-                <h3 className="font-semibold text-ink mb-4">Результат</h3>
-                <div className="text-center py-4">
-                    <div className="text-5xl mb-3">
-                        {(isVndSource ? currencies.find((item) => item.value === toCurrency) : { flag: "🇻🇳" })?.flag}
-                    </div>
-                    <div className="text-3xl sm:text-4xl font-extrabold text-brand-700">
-                        {Number(calculation.result).toLocaleString("ru-RU", { maximumFractionDigits: 2 })}{" "}
-                        <span className="text-2xl">{isVndSource ? toCurrency : "VND"}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-ink-muted">
-                        за {Number(numericAmount).toLocaleString("ru-RU")} {fromCurrency}
-                    </p>
-                </div>
-            </Card>
-
-            <Card>
-                <h3 className="font-semibold text-ink mb-4">Актуальные курсы</h3>
+                <h3 className="font-semibold text-ink mb-4">Ваши курсы</h3>
                 <div className="space-y-3">
                     <RateRow label="🇷🇺 RUB" value={rates.RUB.rate} />
                     <RateRow label="🇺🇸 USD" value={rates.USD.rate} />
                     <RateRow label="🇪🇺 EUR" value={rates.EUR.rate} />
                     <RateRow label="🪙 USDT" value={rates.USDT.rate} />
                 </div>
+                <p className="mt-3 text-xs text-ink-muted">
+                    Эти курсы используются только для обмена валюты в VND.
+                </p>
             </Card>
 
             {error && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</div>}
