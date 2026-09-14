@@ -18,7 +18,8 @@ function escapeHtml(text: string): string {
     return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 }
 
 function formatLeadMessage(payload: LeadPayload): string {
@@ -47,7 +48,11 @@ function formatLeadMessage(payload: LeadPayload): string {
             .filter(Boolean)
             .join(" ");
 
-        if (name) {
+        if (name && payload.user.id) {
+            lines.push(
+                `<a href="tg://user?id=${payload.user.id}">Имя: ${escapeHtml(name)}</a>`,
+            );
+        } else if (name) {
             lines.push(`Имя: ${escapeHtml(name)}`);
         }
 
