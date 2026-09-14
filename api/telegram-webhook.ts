@@ -71,6 +71,45 @@ async function telegramApi(
     }
 }
 
+async function sendWelcome(
+    token: string,
+    chatId: number,
+    firstName?: string,
+): Promise<{ ok: boolean; description?: string }> {
+    const greeting = firstName
+        ? `👋 Привет, ${escapeHtml(firstName)}!`
+        : "👋 Привет!";
+
+    return telegramApi(token, "sendMessage", {
+        chat_id: chatId,
+        text:
+            `${greeting}\n\n` +
+            `Добро пожаловать в <b>Super Bot Nha Trang</b> 🌴\n\n` +
+            `Здесь ты найдёшь всё необходимое для жизни и отдыха в Нячанге:\n\n` +
+            `🏠 Жильё\n` +
+            `🛵 Байки\n` +
+            `🚗 Авто\n` +
+            `💵 Обмен валют\n` +
+            `🛂 Визы\n` +
+            `🌴 Туры\n` +
+            `⭐ Отзывы\n\n` +
+            `Нажимай кнопку ниже и выбирай нужную услугу 👇`,
+        parse_mode: "HTML",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🚀 Открыть Super Bot",
+                        web_app: {
+                            url: "https://superbot-one.vercel.app",
+                        },
+                    },
+                ],
+            ],
+        },
+    });
+}
+
 export default async function handler(
     req: {
         method?: string;
@@ -109,12 +148,37 @@ export default async function handler(
     const update = req.body as TelegramUpdate | undefined;
     const message = update?.message;
 
-    if (!message?.chat?.id || String(message.chat.id) !== adminChatId) {
+    if (!message?.chat?.id) {
         return res.status(200).json({ ok: true });
     }
 
-    const replyText = message.text?.trim();
-    if (!replyText) {
+    const messageText = message.text?.trim();
+
+    // Welcome message for users who press Start.
+    if (
+        message.chat.type === "private" &&
+        messageText &&
+        /^\/start(?:\s|$)/i.test(messageText)
+    ) {
+        const result = await sendWelcome(
+            token,
+            message.chat.id,
+            message.from?.first_name,
+        );
+
+        if (!result.ok) {
+            console.error("telegram welcome error:", result.description);
+        }
+
+        return res.status(200).json({ ok: result.ok });
+    }
+
+    // Admin replies to a lead are relayed back to the client.
+    if (String(message.chat.id) !== adminChatId) {
+        return res.status(200).json({ ok: true });
+    }
+
+    if (!messageText) {
         return res.status(200).json({ ok: true });
     }
 
@@ -125,7 +189,7 @@ export default async function handler(
 
     const result = await telegramApi(token, "sendMessage", {
         chat_id: clientId,
-        text: `📩 <b>Сообщение от Super Bot Nha Trang</b>\n\n${escapeHtml(replyText)}`,
+        text: `📩 <b>Сообщение от Super Bot Nha Trang</b>\n\n${escapeHtml(messageText)}`,
         parse_mode: "HTML",
     });
 
