@@ -6,6 +6,14 @@ import BackButton from "../components/BackButton";
 import PlaceCard from "../components/PlaceCard";
 import { places } from "../data/places";
 
+const categoryIcons = {
+    food: "/category-icons/food.svg",
+    sport: "/category-icons/sport.svg",
+    beaches: "/category-icons/beaches.svg",
+    hiking: "/category-icons/hiking.svg",
+    clubs: "/category-icons/clubs.svg",
+} as const;
+
 const categories = [
     { key: "food", label: "Еда" },
     { key: "sport", label: "Спорт" },
@@ -32,7 +40,8 @@ export default function PlacesPage() {
                     {categories.map((category) => {
                         const isActive = activeTab === category.key;
                         return (
-                            <button key={category.key} type="button" onClick={() => setActiveTab(category.key)} className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 min-h-[44px] ${isActive ? "bg-brand-600 text-white shadow-[var(--shadow-btn)]" : "bg-white/80 text-ink-muted hover:bg-white hover:text-ink border border-border"}`}>
+                            <button key={category.key} type="button" onClick={() => setActiveTab(category.key)} className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 min-h-[44px] ${isActive ? "bg-brand-600 text-white shadow-[var(--shadow-btn)]" : "bg-white/80 text-ink-muted hover:bg-white hover:text-ink border border-border"}`}>
+                                <img src={categoryIcons[category.key]} alt="" aria-hidden="true" className="w-6 h-6 object-contain" />
                                 {category.label}
                             </button>
                         );
