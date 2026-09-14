@@ -12,12 +12,57 @@ type CurrencyItem = { value: ExchangeCurrency; label: string; flag: string; imag
 
 type GoogleRates = Record<ExchangeCurrency, number>;
 
+const GOOGLE_RATES_CACHE_KEY = "superbot-google-rates-v1";
+const GOOGLE_RATES_UPDATED_HOUR = 10;
+const GOOGLE_RATES_REFRESH_MS = 24 * 60 * 60 * 1000;
+
 const currencies: CurrencyItem[] = [
     { value: "RUB", label: "RUB", flag: "🇷🇺" },
     { value: "USD", label: "USD", flag: "🇺🇸" },
     { value: "EUR", label: "EUR", flag: "🇪🇺" },
     { value: "USDT", label: "USDT", flag: "/usdt.png", image: true },
 ];
+
+interface GoogleRatesCache {
+    rates: GoogleRates;
+    updatedAt: string;
+}
+
+function getNextGoogleRatesUpdate() {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(GOOGLE_RATES_UPDATED_HOUR, 0, 0, 0);
+
+    if (next.getTime() <= now.getTime()) {
+        next.setDate(next.getDate() + 1);
+    }
+
+    return next;
+}
+
+function getTodayTenAm() {
+    const now = new Date();
+    const tenAm = new Date(now);
+    tenAm.setHours(GOOGLE_RATES_UPDATED_HOUR, 0, 0, 0);
+    return tenAm;
+}
+
+function isGoogleCacheFresh(updatedAt: string) {
+    const updated = new Date(updatedAt);
+    if (Number.isNaN(updated.getTime())) return false;
+
+    const todayTenAm = getTodayTenAm();
+    const now = new Date();
+
+    // Before 10:00, today's 10:00 update has not happened yet, so
+    // yesterday's cached rates remain valid. After 10:00, only a cache
+    // created today at/after 10:00 is considered fresh.
+    if (now.getTime() < todayTenAm.getTime()) {
+        return updated.getTime() >= todayTenAm.getTime() - GOOGLE_RATES_REFRESH_MS;
+    }
+
+    return updated.getTime() >= todayTenAm.getTime();
+}
 
 export default function CurrencyCalculator() {
     const [rates, setRates] = useState<Rates | null>(null);
@@ -37,14 +82,44 @@ export default function CurrencyCalculator() {
         }
     };
 
-    const loadGoogleRates = async () => {
+    const loadGoogleRates = async (force = false) => {
         try {
+            if (!force) {
+                const cached = localStorage.getItem(GOOGLE_RATES_CACHE_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached) as GoogleRatesCache;
+                    if (parsed.rates && isGoogleCacheFresh(parsed.updatedAt)) {
+                        setGoogleRates(parsed.rates);
+                        return;
+                    }
+                }
+            }
+
             const response = await fetch("/api/google-rates");
             if (!response.ok) throw new Error("Failed to load Google Finance rates");
-            setGoogleRates(await response.json());
+
+            const freshRates = (await response.json()) as GoogleRates;
+            const cache: GoogleRatesCache = {
+                rates: freshRates,
+                updatedAt: new Date().toISOString(),
+            };
+
+            localStorage.setItem(GOOGLE_RATES_CACHE_KEY, JSON.stringify(cache));
+            setGoogleRates(freshRates);
         } catch (err) {
             console.error(err);
-            setGoogleRates(null);
+
+            // If Google is temporarily unavailable, keep using the last
+            // cached rates instead of breaking the calculator.
+            try {
+                const cached = localStorage.getItem(GOOGLE_RATES_CACHE_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached) as GoogleRatesCache;
+                    if (parsed.rates) setGoogleRates(parsed.rates);
+                }
+            } catch {
+                // Ignore invalid local cache.
+            }
         }
     };
 
@@ -54,8 +129,32 @@ export default function CurrencyCalculator() {
 
     useEffect(() => {
         loadAllRates();
-        const interval = setInterval(loadAllRates, 60000);
-        return () => clearInterval(interval);
+
+        // Google Finance rates are intentionally refreshed only once per day
+        // at 10:00 in UTC+7 (Vietnam time). The timer is recalculated after
+        // every update so the app does not poll Google every minute.
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        const scheduleGoogleRefresh = () => {
+            const nextUpdate = getNextGoogleRatesUpdate();
+            const delay = Math.max(nextUpdate.getTime() - Date.now(), 1000);
+
+            timeoutId = setTimeout(async () => {
+                await loadGoogleRates(true);
+                scheduleGoogleRefresh();
+            }, delay);
+        };
+
+        scheduleGoogleRefresh();
+
+        // The user's business rates from Google Sheets keep their existing
+        // one-minute refresh behavior. Only Google Finance is daily.
+        const ratesInterval = setInterval(loadRates, 60000);
+
+        return () => {
+            clearTimeout(timeoutId);
+            clearInterval(ratesInterval);
+        };
     }, []);
 
     const numericAmount = Number(amount.replace(/\s/g, "")) || 0;
