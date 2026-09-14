@@ -5,7 +5,6 @@ import Card from "./Card";
 interface Props {
     title: string;
     description: string;
-    icon: string;
     image: string;
     path: string;
 }
@@ -13,7 +12,6 @@ interface Props {
 export default function CategoryCard({
     title,
     description,
-    icon,
     image,
     path,
 }: Props) {
