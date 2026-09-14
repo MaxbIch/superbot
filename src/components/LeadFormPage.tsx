@@ -9,10 +9,26 @@ import Button from "./Button";
 
 import { submitLead } from "../services/leadService";
 import { hapticFeedback } from "../lib/telegram";
-import type { LeadConfig } from "../types/lead";
+import type { LeadConfig, LeadQuestion } from "../types/lead";
 
 interface Props {
     config: LeadConfig;
+}
+
+function isQuestionVisible(
+    question: LeadQuestion,
+    answers: Record<string, string>,
+) {
+    if (!question.showWhen) return true;
+
+    return answers[question.showWhen.questionId] === question.showWhen.value;
+}
+
+function formatDate(value: string) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+    const [year, month, day] = value.split("-");
+    return `${day}.${month}.${year}`;
 }
 
 export default function LeadFormPage({ config }: Props) {
@@ -21,19 +37,49 @@ export default function LeadFormPage({ config }: Props) {
     const [sent, setSent] = useState(false);
     const [error, setError] = useState("");
 
-    const completed = config.questions.every(
+    const visibleQuestions = useMemo(
+        () =>
+            config.questions.filter((question) =>
+                isQuestionVisible(question, answers),
+            ),
+        [answers, config.questions],
+    );
+
+    const completed = visibleQuestions.every(
         (question) => answers[question.id],
     );
 
     const fields = useMemo(() => {
         const result: Record<string, string> = {};
 
-        config.questions.forEach((question) => {
-            result[question.title] = answers[question.id] || "-";
+        visibleQuestions.forEach((question) => {
+            const answer = answers[question.id] || "-";
+            result[question.title] =
+                question.type === "date" ? formatDate(answer) : answer;
         });
 
         return result;
-    }, [answers, config.questions]);
+    }, [answers, visibleQuestions]);
+
+    const handleChange = (question: LeadQuestion, value: string) => {
+        setAnswers((current) => {
+            const next = {
+                ...current,
+                [question.id]: value,
+            };
+
+            config.questions.forEach((dependentQuestion) => {
+                if (
+                    dependentQuestion.showWhen?.questionId === question.id &&
+                    dependentQuestion.showWhen.value !== value
+                ) {
+                    delete next[dependentQuestion.id];
+                }
+            });
+
+            return next;
+        });
+    };
 
     const handleSubmit = async () => {
         setLoading(true);
@@ -96,19 +142,43 @@ export default function LeadFormPage({ config }: Props) {
                 </div>
 
                 <Card className="mb-4">
-                    {config.questions.map((question) => (
-                        <OptionGroup
-                            key={question.id}
-                            title={question.title}
-                            options={question.options}
-                            value={answers[question.id]}
-                            onChange={(value) =>
-                                setAnswers({
-                                    ...answers,
-                                    [question.id]: value,
-                                })
-                            }
-                        />
+                    {visibleQuestions.map((question) => (
+                        <div key={question.id}>
+                            {question.type === "date" ? (
+                                <div className="mb-6 last:mb-0">
+                                    <h3 className="font-semibold text-ink mb-1 text-sm sm:text-base">
+                                        {question.title}
+                                    </h3>
+
+                                    {question.description && (
+                                        <p className="text-ink-muted text-xs sm:text-sm mb-3">
+                                            {question.description}
+                                        </p>
+                                    )}
+
+                                    <input
+                                        type="date"
+                                        value={answers[question.id] || ""}
+                                        onChange={(event) =>
+                                            handleChange(
+                                                question,
+                                                event.target.value,
+                                            )
+                                        }
+                                        className="w-full min-h-[48px] px-4 py-2.5 rounded-xl border-2 border-border bg-surface-muted text-ink text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                                    />
+                                </div>
+                            ) : (
+                                <OptionGroup
+                                    title={question.title}
+                                    options={question.options ?? []}
+                                    value={answers[question.id]}
+                                    onChange={(value) =>
+                                        handleChange(question, value)
+                                    }
+                                />
+                            )}
+                        </div>
                     ))}
                 </Card>
 
@@ -122,7 +192,7 @@ export default function LeadFormPage({ config }: Props) {
                         </div>
 
                         <div className="space-y-2 mb-4">
-                            {config.questions.map((question) => (
+                            {visibleQuestions.map((question) => (
                                 <div
                                     key={question.id}
                                     className="flex justify-between gap-4 text-sm py-2 border-b border-border last:border-0"
@@ -131,7 +201,9 @@ export default function LeadFormPage({ config }: Props) {
                                         {question.title}
                                     </span>
                                     <span className="font-medium text-ink text-right">
-                                        {answers[question.id]}
+                                        {question.type === "date"
+                                            ? formatDate(answers[question.id])
+                                            : answers[question.id]}
                                     </span>
                                 </div>
                             ))}
