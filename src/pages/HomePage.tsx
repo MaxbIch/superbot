@@ -29,32 +29,13 @@ export default function HomePage() {
         <Layout>
             <Card
                 padding="none"
-                className="mb-6 animate-fade-in-up overflow-hidden relative min-h-[350px] sm:min-h-[380px]"
+                className="mb-5 animate-fade-in-up overflow-hidden relative h-[56vh] min-h-[320px] max-h-[560px] sm:h-[430px] sm:min-h-0 sm:max-h-none"
             >
-                <div
-                    className="absolute inset-0 bg-cover bg-center sm:bg-[position:62%_center]"
-                    style={{ backgroundImage: "url('/hero-nha-trang.svg')" }}
+                <img
+                    src="/hero-mobile.webp"
+                    alt="Нячанг — Super Bot"
+                    className="absolute inset-0 h-full w-full object-cover object-center"
                 />
-
-                <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/72 to-transparent sm:from-white/92 sm:via-white/58 sm:to-transparent" />
-
-                <div className="relative z-10 flex min-h-[350px] sm:min-h-[380px] items-center p-6 sm:p-8 lg:p-10">
-                    <div className="max-w-[78%] sm:max-w-[58%] lg:max-w-[54%] text-left">
-                        <p className="text-brand-600 font-semibold text-sm mb-1">
-                            Добро пожаловать
-                        </p>
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink mb-1 tracking-tight">
-                            👋 Привет!
-                        </h1>
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-brand-800 mb-3">
-                            Я супер бот Нячанга
-                        </h2>
-                        <p className="text-ink-muted text-sm sm:text-base lg:text-lg leading-relaxed">
-                            Помогу с арендой, турами, обменом валют,
-                            визаранами и жильём во Вьетнаме.
-                        </p>
-                    </div>
-                </div>
             </Card>
 
             <h3 className="font-bold text-ink mb-3 px-1">
