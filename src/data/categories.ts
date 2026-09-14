@@ -2,56 +2,51 @@ import type { Category } from "../types/category";
 
 export const categories: Category[] = [
     {
-        id: "transport",
-        title: "Байки & Авто",
-        description:
-            "Аренда байков и автомобилей в Нячанге",
-        icon: "🏍️",
-        path: "/transport",
+        id: "auto",
+        title: "Авто",
+        description: "Аренда автомобилей в Нячанге",
+        icon: "🚗",
+        image: "/category-icons/auto.svg",
+        path: "/transport?type=car",
     },
-
     {
-        id: "currency",
-        title: "Обмен валют",
-        description:
-            "Актуальные курсы обмена валюты",
+        id: "bikes",
+        title: "Байки",
+        description: "Аренда мотобайков в Нячанге",
+        icon: "🏍️",
+        image: "/category-icons/bikes.svg",
+        path: "/transport?type=bike",
+    },
+    {
+        id: "exchange",
+        title: "Обмен",
+        description: "Курсы валют и обмен",
         icon: "💵",
+        image: "/category-icons/exchange.svg",
         path: "/currency",
     },
-
-    {
-        id: "housing",
-        title: "Жилье",
-        description:
-            "Квартиры, дома, виллы и отели",
-        icon: "🏠",
-        path: "/housing",
-    },
-
     {
         id: "visarun",
         title: "Визараны",
-        description:
-            "Визы во Вьетнам и выезды в соседние страны",
+        description: "Визы и выезды из Вьетнама",
         icon: "🛂",
+        image: "/category-icons/visaruns.svg",
         path: "/visarun",
     },
-
+    {
+        id: "places",
+        title: "Места",
+        description: "Кафе, пляжи, спорт и клубы",
+        icon: "📍",
+        image: "/category-icons/places.svg",
+        path: "/places",
+    },
     {
         id: "tours",
         title: "Туры",
-        description:
-            "Экскурсии, острова и развлечения",
+        description: "Экскурсии и путешествия",
         icon: "🌴",
+        image: "/category-icons/tours.svg",
         path: "/tours",
-    },
-
-    {
-        id: "places",
-        title: "Куда сходить",
-        description:
-            "Лучшие заведения, спорт, тусовки и пляжи",
-        icon: "📍",
-        path: "/places",
     },
 ];
