@@ -1,5 +1,6 @@
 import type { Category } from "../types/category";
 
+// Keep category artwork paths explicit so Vercel deploys the same assets as main.
 export const categories: Category[] = [
     {
         id: "transport",
