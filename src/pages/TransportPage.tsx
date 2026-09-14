@@ -12,13 +12,13 @@ import { carLead } from "../data/carLead";
 const options = [
     {
         type: "bike" as const,
-        emoji: "🏍️",
+        image: "/category-icons/bike.svg",
         title: "Аренда байка",
         description: "Vision, Airblade, NVX, PCX и другие",
     },
     {
         type: "car" as const,
-        emoji: "🚗",
+        image: "/category-icons/car.svg",
         title: "Аренда автомобиля",
         description: "Седан, кроссовер или минивэн",
     },
@@ -44,9 +44,8 @@ export default function TransportPage() {
 
             <div className="animate-fade-in-up">
                 <div className="mb-5">
-                    <span className="text-4xl">🚘</span>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-2">
-                        Транспорт
+                    <h1 className="text-2xl sm:text-3xl font-bold text-ink">
+                        Авто и байки
                     </h1>
                     <p className="text-ink-muted mt-1 text-sm">
                         Что вас интересует?
@@ -62,10 +61,14 @@ export default function TransportPage() {
                             onClick={() => setType(option.type)}
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-3xl">
-                                    {option.emoji}
+                                <div className="flex-shrink-0 w-16 h-16 rounded-2xl overflow-hidden shadow-sm">
+                                    <img
+                                        src={option.image}
+                                        alt=""
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
-                                <div>
+                                <div className="min-w-0">
                                     <div className="font-bold text-ink">
                                         {option.title}
                                     </div>
