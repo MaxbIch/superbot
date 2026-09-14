@@ -167,6 +167,20 @@ export default function TourDetailPage() {
                         {tour.fullDescription}
                     </p>
 
+                    {tour.facts && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5">
+                            {tour.facts.map(([label, value]) => (
+                                <div
+                                    key={label}
+                                    className="rounded-xl bg-surface-muted border border-border px-3 py-2.5"
+                                >
+                                    <div className="text-xs text-ink-muted">{label}</div>
+                                    <div className="text-sm font-semibold text-ink mt-0.5">{value}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="mt-5">
                         <h3 className="font-semibold text-ink mb-3">Что вас ждёт</h3>
                         <ul className="space-y-2.5">
@@ -178,6 +192,38 @@ export default function TourDetailPage() {
                             ))}
                         </ul>
                     </div>
+
+                    {tour.tips && (
+                        <div className="mt-5 rounded-xl bg-brand-50 border border-brand-100 p-3.5">
+                            <h3 className="font-semibold text-ink mb-2">Полезно знать</h3>
+                            <ul className="space-y-2">
+                                {tour.tips.map((tip) => (
+                                    <li key={tip} className="text-sm text-ink-muted leading-relaxed">
+                                        • {tip}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {tour.photoSources && (
+                        <div className="mt-4 text-xs text-ink-muted">
+                            Фото из открытых источников: {" "}
+                            {tour.photoSources.map((source, index) => (
+                                <span key={source}>
+                                    <a
+                                        href={source}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="underline underline-offset-2"
+                                    >
+                                        источник {index + 1}
+                                    </a>
+                                    {index < tour.photoSources.length - 1 ? ", " : ""}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </Card>
 
                 <div className="mb-3">
