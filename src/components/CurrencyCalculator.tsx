@@ -45,15 +45,11 @@ export default function CurrencyCalculator() {
     const calculation = useMemo(() => {
         if (!rates) return null;
 
+        // When VND is selected, the user gives VND and chooses the target
+        // currency using the same selector above. The Google/Sheet rate is
+        // the number of VND required for 1 unit of the target currency.
         if (currency === "VND") {
-            return {
-                results: {
-                    RUB: numericAmount / rates.RUB.rate,
-                    USD: numericAmount / rates.USD.rate,
-                    EUR: numericAmount / rates.EUR.rate,
-                    USDT: numericAmount / rates.USDT.rate,
-                },
-            };
+            return null;
         }
 
         const currencyRate = rates[currency];
@@ -71,6 +67,16 @@ export default function CurrencyCalculator() {
         };
     }, [numericAmount, currency, rates]);
 
+    const vndCalculation = useMemo(() => {
+        if (!rates || currency === "VND") return null;
+
+        const currencyRate = rates[currency];
+        return {
+            targetAmount: numericAmount / currencyRate.rate,
+            rate: currencyRate.rate,
+        };
+    }, [numericAmount, currency, rates]);
+
     const formatInput = (value: string) => {
         const numbers = value.replace(/\D/g, "");
         if (!numbers) return "";
@@ -82,7 +88,7 @@ export default function CurrencyCalculator() {
         setError("");
 
         const fields: Record<string, string> = {
-            "Отдаю": `${amount} ${currency}`,
+            "Отдаю": currency === "VND" ? `${amount} VND` : `${amount} ${currency}`,
         };
 
         if (currency !== "VND" && calculation?.results?.VND) {
@@ -137,8 +143,12 @@ export default function CurrencyCalculator() {
                     </button>
                 </div>
 
+                <div className="mb-3 text-sm text-ink-muted">
+                    Сумма в донгах → выберите валюту, которую хотите получить
+                </div>
+
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
-                    {currencies.map((item) => (
+                    {currencies.filter((item) => item.value !== "VND").map((item) => (
                         <button
                             key={item.value}
                             onClick={() => setCurrency(item.value)}
@@ -161,7 +171,7 @@ export default function CurrencyCalculator() {
                 <input
                     value={amount}
                     onChange={(e) => setAmount(formatInput(e.target.value))}
-                    placeholder="Введите сумму"
+                    placeholder="Введите сумму в VND"
                     inputMode="numeric"
                     className="
                         w-full border-2 border-border rounded-xl
@@ -178,41 +188,32 @@ export default function CurrencyCalculator() {
                         <div>
                             <p className="text-sm text-ink-muted">Курс</p>
                             <p className="text-xl font-bold text-brand-700">
-                                {calculation.activeRate?.toLocaleString("ru-RU")} ₫
+                                {vndCalculation?.rate?.toLocaleString("ru-RU")} ₫ за 1 {currency}
                             </p>
                         </div>
-                        {calculation.isVip ? (
-                            <span className="px-3 py-1 rounded-full bg-brand-600 text-white text-xs font-bold">
-                                ⭐ VIP
-                            </span>
-                        ) : (
-                            <span className="text-xs text-ink-muted text-right max-w-[140px]">
-                                VIP от {(calculation.minVip ?? 0).toLocaleString("ru-RU")} {currency}
-                            </span>
-                        )}
+                        <span className="text-xs text-ink-muted text-right max-w-[150px]">
+                            Google / актуальный курс
+                        </span>
                     </div>
                 </Card>
             )}
 
             <Card>
                 <h3 className="font-semibold text-ink mb-4">Результат</h3>
-
-                {currency === "VND" ? (
-                    <div className="space-y-3">
-                        <ResultRow label="🇷🇺 RUB" value={calculation?.results?.RUB} />
-                        <ResultRow label="🇺🇸 USD" value={calculation?.results?.USD} />
-                        <ResultRow label="🇪🇺 EUR" value={calculation?.results?.EUR} />
-                        <ResultRow label="🪙 USDT" value={calculation?.results?.USDT} />
+                <div className="text-center py-4">
+                    <div className="text-5xl mb-3">
+                        {currencies.find((item) => item.value === currency)?.flag}
                     </div>
-                ) : (
-                    <div className="text-center py-4">
-                        <div className="text-5xl mb-3">🇻🇳</div>
-                        <div className="text-3xl sm:text-4xl font-extrabold text-brand-700">
-                            {Number(calculation?.results?.VND || 0).toLocaleString("ru-RU")}{" "}
-                            <span className="text-2xl">₫</span>
-                        </div>
+                    <div className="text-3xl sm:text-4xl font-extrabold text-brand-700">
+                        {Number(vndCalculation?.targetAmount || 0).toLocaleString("ru-RU", {
+                            maximumFractionDigits: 2,
+                        })}{" "}
+                        <span className="text-2xl">{currency}</span>
                     </div>
-                )}
+                    <p className="mt-2 text-sm text-ink-muted">
+                        за {Number(numericAmount).toLocaleString("ru-RU")} ₫
+                    </p>
+                </div>
             </Card>
 
             <Card>
@@ -246,15 +247,6 @@ export default function CurrencyCalculator() {
                     Заказать обмен
                 </Button>
             )}
-        </div>
-    );
-}
-
-function ResultRow({ label, value }: { label: string; value?: number }) {
-    return (
-        <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
-            <span className="text-sm">{label}</span>
-            <strong className="text-ink">{(value ?? 0).toFixed(2)}</strong>
         </div>
     );
 }
