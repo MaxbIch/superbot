@@ -61,3 +61,4 @@ export default function PlacesPage() {
 }
 
 // Keep the latest production UI changes on main and trigger a fresh deployment.
+// Deployment trigger: 2026-09-15T07:39+07:00
