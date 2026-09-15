@@ -1,17 +1,21 @@
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import BackButton from "../components/BackButton";
 import Card from "../components/Card";
 
-import { reviews } from "../data/reviews";
+interface Review {
+    id: string;
+    username: string;
+    text: string;
+    rating: number;
+    date?: string;
+}
 
 function Stars({ rating }: { rating: number }) {
     return (
         <div className="flex items-center gap-0.5" aria-label={`Оценка ${rating} из 5`}>
             {[1, 2, 3, 4, 5].map((star) => (
-                <span
-                    key={star}
-                    className={star <= rating ? "text-amber-400" : "text-slate-200"}
-                >
+                <span key={star} className={star <= rating ? "text-amber-400" : "text-slate-200"}>
                     ★
                 </span>
             ))}
@@ -19,7 +23,45 @@ function Stars({ rating }: { rating: number }) {
     );
 }
 
+function formatDate(value?: string) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    }).format(date);
+}
+
 export default function ReviewsPage() {
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        fetch("/api/reviews")
+            .then(async (response) => {
+                if (!response.ok) throw new Error("Failed to load reviews");
+                return response.json() as Promise<{ reviews?: Review[] }>;
+            })
+            .then((data) => {
+                if (!cancelled) setReviews(data.reviews ?? []);
+            })
+            .catch((error) => {
+                console.error("reviews load error:", error);
+                if (!cancelled) setReviews([]);
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     return (
         <Layout>
             <BackButton />
@@ -34,14 +76,19 @@ export default function ReviewsPage() {
                 </p>
             </div>
 
-            {reviews.length === 0 ? (
+            {loading ? (
+                <Card className="text-center animate-fade-in-up" padding="lg">
+                    <div className="text-4xl mb-3 animate-pulse">⭐</div>
+                    <p className="text-sm text-ink-muted">Загружаем отзывы…</p>
+                </Card>
+            ) : reviews.length === 0 ? (
                 <Card className="text-center animate-fade-in-up" padding="lg">
                     <div className="text-5xl mb-4">💬</div>
                     <h2 className="font-bold text-lg text-ink mb-2">
                         Отзывы скоро появятся
                     </h2>
                     <p className="text-sm text-ink-muted leading-relaxed">
-                        Мы собираем отзывы клиентов в Telegram и добавим их сюда.
+                        Оставьте отзыв в Telegram — после выбора оценки он появится здесь автоматически.
                     </p>
                 </Card>
             ) : (
@@ -55,13 +102,12 @@ export default function ReviewsPage() {
                                     </h2>
                                     {review.date && (
                                         <p className="text-xs text-ink-muted mt-0.5">
-                                            {review.date}
+                                            {formatDate(review.date)}
                                         </p>
                                     )}
                                 </div>
                                 <Stars rating={review.rating} />
                             </div>
-
                             <p className="text-sm text-ink leading-relaxed whitespace-pre-line">
                                 {review.text}
                             </p>
