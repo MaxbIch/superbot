@@ -47,15 +47,18 @@ export default async function handler(
         return res.status(502).json({ error: result.description ?? "Failed to set Telegram webhook" });
     }
 
-    const [info, me, chat] = await Promise.all([
+    const [info, me, chatByConfiguredId, chatByUsername] = await Promise.all([
         telegramApi(token, "getWebhookInfo", {}),
         telegramApi(token, "getMe", {}),
         telegramApi(token, "getChat", { chat_id: reviewsChatId }),
+        telegramApi(token, "getChat", { chat_id: "@superbot_reviews" }),
     ]);
 
     const botId = me.ok ? me.result?.id : undefined;
+    const resolvedChatId = chatByUsername.ok ? chatByUsername.result?.id : undefined;
+    const memberChatId = resolvedChatId ?? reviewsChatId;
     const member = botId
-        ? await telegramApi(token, "getChatMember", { chat_id: reviewsChatId, user_id: botId })
+        ? await telegramApi(token, "getChatMember", { chat_id: memberChatId, user_id: botId })
         : { ok: false, description: "Could not determine bot id" };
 
     return res.status(200).json({
@@ -65,12 +68,19 @@ export default async function handler(
             bot: me.ok
                 ? { ok: true, id: me.result?.id, username: me.result?.username, can_read_all_group_messages: me.result?.can_read_all_group_messages }
                 : { ok: false, error: me.description },
-            reviews_chat: chat.ok
-                ? { ok: true, id: chat.result?.id, type: chat.result?.type, title: chat.result?.title, username: chat.result?.username }
-                : { ok: false, error: chat.description, configured_id: reviewsChatId },
+            reviews_chat: chatByConfiguredId.ok
+                ? { ok: true, id: chatByConfiguredId.result?.id, type: chatByConfiguredId.result?.type, title: chatByConfiguredId.result?.title, username: chatByConfiguredId.result?.username }
+                : {
+                    ok: false,
+                    error: chatByConfiguredId.description,
+                    configured_id: reviewsChatId,
+                    resolved_by_username: chatByUsername.ok
+                        ? { id: chatByUsername.result?.id, type: chatByUsername.result?.type, title: chatByUsername.result?.title, username: chatByUsername.result?.username }
+                        : { error: chatByUsername.description },
+                },
             bot_membership: member.ok
-                ? { ok: true, status: member.result?.status, can_manage_chat: member.result?.can_manage_chat, can_delete_messages: member.result?.can_delete_messages, can_pin_messages: member.result?.can_pin_messages }
-                : { ok: false, error: member.description },
+                ? { ok: true, chat_id_checked: memberChatId, status: member.result?.status, can_manage_chat: member.result?.can_manage_chat, can_delete_messages: member.result?.can_delete_messages, can_pin_messages: member.result?.can_pin_messages }
+                : { ok: false, chat_id_checked: memberChatId, error: member.description },
         },
     });
 }
