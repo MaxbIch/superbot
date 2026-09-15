@@ -124,6 +124,7 @@ async function forwardDirectMessage(
     const username = message.from?.username
         ? `@${message.from.username}`
         : "не указан";
+    const userId = message.from?.id ?? message.chat.id;
 
     return telegramApi(token, "sendMessage", {
         chat_id: adminChatId,
@@ -131,10 +132,20 @@ async function forwardDirectMessage(
             `📩 <b>Сообщение напрямую боту</b>\n\n` +
             `👤 <b>${escapeHtml(firstName)}</b>\n` +
             `Username: ${escapeHtml(username)}\n` +
-            `ID: <code>${message.chat.id}</code>\n\n` +
+            `ID: <code>${userId}</code>\n\n` +
             `${escapeHtml(messageText)}\n\n` +
             `↩️ Ответьте на это сообщение, чтобы отправить ответ клиенту.`,
         parse_mode: "HTML",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "💬 Открыть контакт",
+                        url: `tg://user?id=${userId}`,
+                    },
+                ],
+            ],
+        },
     });
 }
 
