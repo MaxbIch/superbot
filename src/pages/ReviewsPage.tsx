@@ -1,26 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import Layout from "../components/Layout";
 import BackButton from "../components/BackButton";
 import Card from "../components/Card";
+import { getTelegramUser } from "../lib/telegram";
 
 import { reviews as demoReviews, type Review } from "../data/reviews";
-
-declare global {
-    interface Window {
-        Telegram?: {
-            WebApp?: {
-                initData?: string;
-                initDataUnsafe?: {
-                    user?: {
-                        username?: string;
-                        first_name?: string;
-                        last_name?: string;
-                    };
-                };
-            };
-        };
-    }
-}
 
 function Stars({ rating }: { rating: number }) {
     return (
@@ -45,10 +30,6 @@ function formatDate(value?: string) {
     }).format(date);
 }
 
-function getTelegramUser() {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user;
-}
-
 export default function ReviewsPage() {
     const [reviews, setReviews] = useState<Review[]>(demoReviews);
     const [loading, setLoading] = useState(true);
@@ -58,11 +39,9 @@ export default function ReviewsPage() {
     const [formMessage, setFormMessage] = useState("");
 
     const telegramUser = getTelegramUser();
-    const displayName = useMemo(() => {
-        if (!telegramUser) return "Telegram";
-        if (telegramUser.username) return `@${telegramUser.username}`;
-        return [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || "Telegram";
-    }, [telegramUser]);
+    const displayName = telegramUser?.username
+        ? `@${telegramUser.username}`
+        : [telegramUser?.first_name, telegramUser?.last_name].filter(Boolean).join(" ") || "Telegram";
 
     useEffect(() => {
         let cancelled = false;
