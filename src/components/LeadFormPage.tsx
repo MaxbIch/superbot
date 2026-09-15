@@ -17,8 +17,8 @@ interface Props {
 
 const categoryIcons: Record<string, string> = {
     housing: "/category-icon/housing.png",
-    "transport/bike": "/category-icon/transport.png",
-    "transport/car": "/category-icon/transport.png",
+    "transport/bike": "/category-icon/bike.png",
+    "transport/car": "/category-icon/car.png",
     visarun: "/category-icon/visaruns.png",
 };
 
