@@ -41,7 +41,7 @@ export default function PlacesPage() {
                         const isActive = activeTab === category.key;
                         return (
                             <button key={category.key} type="button" onClick={() => setActiveTab(category.key)} className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 min-h-[44px] ${isActive ? "bg-brand-600 text-white shadow-[var(--shadow-btn)]" : "bg-gray-100 text-ink-muted hover:bg-gray-200 hover:text-ink border border-border"}`}>
-                                <img src={categoryIcons[category.key]} alt="" aria-hidden="true" className="w-6 h-6 object-contain" draggable={false} />
+                                <img src={categoryIcons[category.key]} alt="" aria-hidden="true" className={`w-6 h-6 object-contain ${isActive ? "" : "brightness-50"}`} draggable={false} />
                                 {category.label}
                             </button>
                         );
