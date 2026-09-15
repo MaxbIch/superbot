@@ -3,13 +3,7 @@ import Layout from "../components/Layout";
 import BackButton from "../components/BackButton";
 import Card from "../components/Card";
 
-interface Review {
-    id: string;
-    username: string;
-    text: string;
-    rating: number;
-    date?: string;
-}
+import { reviews as demoReviews, type Review } from "../data/reviews";
 
 function Stars({ rating }: { rating: number }) {
     return (
@@ -35,7 +29,7 @@ function formatDate(value?: string) {
 }
 
 export default function ReviewsPage() {
-    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviews, setReviews] = useState<Review[]>(demoReviews);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -47,11 +41,17 @@ export default function ReviewsPage() {
                 return response.json() as Promise<{ reviews?: Review[] }>;
             })
             .then((data) => {
-                if (!cancelled) setReviews(data.reviews ?? []);
+                if (cancelled) return;
+
+                const liveReviews = (data.reviews ?? []).filter(
+                    (review) => !demoReviews.some((demo) => demo.id === review.id),
+                );
+
+                setReviews([...liveReviews, ...demoReviews]);
             })
             .catch((error) => {
                 console.error("reviews load error:", error);
-                if (!cancelled) setReviews([]);
+                if (!cancelled) setReviews(demoReviews);
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
