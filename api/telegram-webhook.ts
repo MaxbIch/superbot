@@ -110,6 +110,34 @@ async function sendWelcome(
     });
 }
 
+async function forwardDirectMessage(
+    token: string,
+    adminChatId: string,
+    message: TelegramMessage,
+): Promise<{ ok: boolean; description?: string }> {
+    const messageText = message.text?.trim();
+    if (!messageText || !message.chat?.id) {
+        return { ok: true };
+    }
+
+    const firstName = message.from?.first_name?.trim() || "Без имени";
+    const username = message.from?.username
+        ? `@${message.from.username}`
+        : "не указан";
+
+    return telegramApi(token, "sendMessage", {
+        chat_id: adminChatId,
+        text:
+            `📩 <b>Сообщение напрямую боту</b>\n\n` +
+            `👤 <b>${escapeHtml(firstName)}</b>\n` +
+            `Username: ${escapeHtml(username)}\n` +
+            `ID: <code>${message.chat.id}</code>\n\n` +
+            `${escapeHtml(messageText)}\n\n` +
+            `↩️ Ответьте на это сообщение, чтобы отправить ответ клиенту.`,
+        parse_mode: "HTML",
+    });
+}
+
 export default async function handler(
     req: {
         method?: string;
@@ -168,6 +196,17 @@ export default async function handler(
 
         if (!result.ok) {
             console.error("telegram welcome error:", result.description);
+        }
+
+        return res.status(200).json({ ok: result.ok });
+    }
+
+    // Any ordinary direct message to the bot is sent to the admin chat.
+    if (message.chat.type === "private" && messageText) {
+        const result = await forwardDirectMessage(token, adminChatId, message);
+
+        if (!result.ok) {
+            console.error("telegram direct message forwarding error:", result.description);
         }
 
         return res.status(200).json({ ok: result.ok });
