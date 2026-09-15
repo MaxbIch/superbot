@@ -71,7 +71,12 @@ async function sendWelcome(token: string, chatId: number, firstName?: string) {
         chat_id: chatId,
         text: `${greeting}\n\nДобро пожаловать в <b>Super Bot Nha Trang</b> 🌴\n\nЗдесь ты найдёшь всё необходимое для жизни и отдыха в Нячанге:\n\n🏠 Жильё\n🛵 Байки\n🚗 Авто\n💵 Обмен валют\n🛂 Визы\n🌴 Туры\n⭐ Отзывы\n\nНажимай кнопку ниже и выбирай нужную услугу 👇`,
         parse_mode: "HTML",
-        reply_markup: { inline_keyboard: [[{ text: "🚀 Открыть Super Bot", web_app: { url: "https://superbot-one.vercel.app" } }]] },
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "🚀 Открыть Super Bot", web_app: { url: "https://superbot-one.vercel.app" } }],
+                [{ text: "⭐ Отзывы", url: "https://t.me/superbot_reviews" }],
+            ],
+        },
     });
 }
 
