@@ -1,9 +1,26 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import BackButton from "../components/BackButton";
 import Card from "../components/Card";
 
 import { reviews as demoReviews, type Review } from "../data/reviews";
+
+declare global {
+    interface Window {
+        Telegram?: {
+            WebApp?: {
+                initData?: string;
+                initDataUnsafe?: {
+                    user?: {
+                        username?: string;
+                        first_name?: string;
+                        last_name?: string;
+                    };
+                };
+            };
+        };
+    }
+}
 
 function Stars({ rating }: { rating: number }) {
     return (
@@ -28,9 +45,24 @@ function formatDate(value?: string) {
     }).format(date);
 }
 
+function getTelegramUser() {
+    return window.Telegram?.WebApp?.initDataUnsafe?.user;
+}
+
 export default function ReviewsPage() {
     const [reviews, setReviews] = useState<Review[]>(demoReviews);
     const [loading, setLoading] = useState(true);
+    const [rating, setRating] = useState(5);
+    const [text, setText] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [formMessage, setFormMessage] = useState("");
+
+    const telegramUser = getTelegramUser();
+    const displayName = useMemo(() => {
+        if (!telegramUser) return "Telegram";
+        if (telegramUser.username) return `@${telegramUser.username}`;
+        return [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || "Telegram";
+    }, [telegramUser]);
 
     useEffect(() => {
         let cancelled = false;
@@ -62,6 +94,48 @@ export default function ReviewsPage() {
         };
     }, []);
 
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setFormMessage("");
+
+        const initData = window.Telegram?.WebApp?.initData ?? "";
+        if (!initData) {
+            setFormMessage("Открыть отзывы нужно внутри Telegram, чтобы имя определилось автоматически.");
+            return;
+        }
+        if (text.trim().length < 3) {
+            setFormMessage("Напишите отзыв минимум из 3 символов.");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const response = await fetch("/api/reviews", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    text: text.trim(),
+                    rating,
+                    initData,
+                }),
+            });
+            const data = (await response.json()) as { review?: Review; error?: string };
+
+            if (!response.ok || !data.review) {
+                throw new Error(data.error ?? "Не удалось сохранить отзыв");
+            }
+
+            setReviews((current) => [data.review!, ...current.filter((item) => item.id !== data.review!.id)]);
+            setText("");
+            setRating(5);
+            setFormMessage("Спасибо! Ваш отзыв опубликован ⭐");
+        } catch (error) {
+            setFormMessage(error instanceof Error ? error.message : "Не удалось сохранить отзыв");
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
     return (
         <Layout>
             <BackButton />
@@ -76,6 +150,67 @@ export default function ReviewsPage() {
                 </p>
             </div>
 
+            <Card className="mb-5 animate-fade-in-up" padding="md">
+                <div className="mb-4">
+                    <h2 className="font-bold text-lg text-ink">Оставить отзыв</h2>
+                    <p className="text-xs text-ink-muted mt-1">
+                        Имя: <span className="font-medium text-ink">{displayName}</span>
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <p className="text-sm font-medium text-ink mb-2">Ваша оценка</p>
+                        <div className="flex items-center gap-1" role="radiogroup" aria-label="Ваша оценка">
+                            {[1, 2, 3, 4, 5].map((value) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    onClick={() => setRating(value)}
+                                    className={`text-3xl leading-none transition-transform hover:scale-110 ${
+                                        value <= rating ? "text-amber-400" : "text-slate-200"
+                                    }`}
+                                    aria-label={`${value} из 5`}
+                                    aria-pressed={value === rating}
+                                >
+                                    ★
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label htmlFor="review-text" className="text-sm font-medium text-ink block mb-2">
+                            Ваш отзыв
+                        </label>
+                        <textarea
+                            id="review-text"
+                            value={text}
+                            onChange={(event) => setText(event.target.value)}
+                            maxLength={1000}
+                            rows={4}
+                            placeholder="Расскажите, чем вам помог Super Bot…"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100 resize-none"
+                        />
+                        <p className="text-[11px] text-ink-muted mt-1 text-right">{text.length}/1000</p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full rounded-2xl bg-ink text-white py-3 px-4 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50"
+                    >
+                        {submitting ? "Публикуем…" : "Опубликовать отзыв"}
+                    </button>
+
+                    {formMessage && (
+                        <p className="text-sm text-center text-ink-muted" role="status">
+                            {formMessage}
+                        </p>
+                    )}
+                </form>
+            </Card>
+
             {loading ? (
                 <Card className="text-center animate-fade-in-up" padding="lg">
                     <div className="text-4xl mb-3 animate-pulse">⭐</div>
@@ -88,7 +223,7 @@ export default function ReviewsPage() {
                         Отзывы скоро появятся
                     </h2>
                     <p className="text-sm text-ink-muted leading-relaxed">
-                        Оставьте отзыв в Telegram — после выбора оценки он появится здесь автоматически.
+                        Оставьте первый отзыв прямо здесь.
                     </p>
                 </Card>
             ) : (
