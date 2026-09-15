@@ -126,7 +126,7 @@ export default function ReviewsPage() {
                             onChange={(event) => setName(event.target.value)}
                             maxLength={80}
                             placeholder={telegramName || "Житель Нячанга"}
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-ink outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
                         />
                     </div>
 
@@ -145,7 +145,7 @@ export default function ReviewsPage() {
                         <label htmlFor="review-text" className="text-sm font-medium text-ink block mb-2">Ваш отзыв <span className="text-red-500">*</span></label>
                         <textarea id="review-text" value={text} onChange={(event) => setText(event.target.value)} maxLength={1000} rows={4}
                             placeholder="Расскажите, чем вам помог Super Bot…"
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100 resize-none" />
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-ink outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100 resize-none" />
                         <p className="text-[11px] text-ink-muted mt-1 text-right">{text.length}/1000</p>
                     </div>
 
