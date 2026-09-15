@@ -161,15 +161,16 @@ async function handleReviewRating(token: string, callback: TelegramCallbackQuery
     await redisCommand(["LPUSH", "superbot:reviews", JSON.stringify(review)]);
     await redisCommand(["LTRIM", "superbot:reviews", "0", "49"]);
     await redisCommand(["DEL", key]);
-    await telegramApi(token, "answerCallbackQuery", {
-        callback_query_id: callback.id,
-        text: `Спасибо! Оценка ${rating}/5 сохранена ⭐`,
-    });
-    await telegramApi(token, "editMessageText", {
+
+    // После выбора оценки не отправляем новое сообщение и удаляем сообщение бота с кнопками.
+    if (callback.id) {
+        await telegramApi(token, "answerCallbackQuery", {
+            callback_query_id: callback.id,
+        });
+    }
+    await telegramApi(token, "deleteMessage", {
         chat_id: chatId,
         message_id: callback.message.message_id,
-        text: `⭐ <b>Оценка получена: ${"⭐".repeat(rating)}</b>\n\nСпасибо за ваш отзыв!`,
-        parse_mode: "HTML",
     });
 }
 
